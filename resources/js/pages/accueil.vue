@@ -1,15 +1,311 @@
 <script setup lang="ts">
 import PrimaryButton from '@/components/angelo/button/PrimaryButton.vue';
 import MusicCard from '@/components/angelo/cards/MusicCard.vue';
+// import {
+//     BackwardIcon,
+//     ForwardIcon,
+//     PauseIcon,
+//     SpeakerWaveIcon,
+//     HeartIcon,
+//     ArrowsRightLeftIcon
+// } from '@heroicons/vue/24/solid';
 
 </script>
 
 <template>
+    <!-- <PrimaryButton :loading="true">
+        Sauvegarder
+    </PrimaryButton> -->
+    <div class="relative w-full min-h-screen">
+        <div class="flex gap-2 my-2">
+            <PrimaryButton size="xs">
+                All
+            </PrimaryButton>
+            <PrimaryButton size="xs" class="bg-[#c8cac9]" color="black">
+                Top
+            </PrimaryButton>
+        </div>
+        <!-- Music List -->
+        <div class="flex flex-wrap items-center justify-between gap-5">
+        <MusicCard
+            title="Aza ambelanao"
+            artist="Rim ka"
+            image="/assets/images/album.JPG"
+        />
+        <MusicCard
+            title="Aza ambelanao"
+            artist="Rim ka"
+            image="/assets/images/album.JPG"
+        />
+        <MusicCard
+            title="Aza ambelanao"
+            artist="Rim ka"
+            image="/assets/images/album.JPG"
+        />
+        <MusicCard
+            title="Aza ambelanao"
+            artist="Rim ka"
+            image="/assets/images/album.JPG"
+        />
+        <MusicCard
+            title="Aza ambelanao"
+            artist="Rim ka"
+            image="/assets/images/album.JPG"
+        />
+        <MusicCard
+            title="Aza ambelanao"
+            artist="Rim ka"
+            image="/assets/images/album.JPG"
+        />
+        <MusicCard
+            title="Aza ambelanao"
+            artist="Rim ka"
+            image="/assets/images/album.JPG"
+        />
+        <MusicCard
+            title="Aza ambelanao"
+            artist="Rim ka"
+            image="/assets/images/album.JPG"
+        />
+        <MusicCard
+            title="Aza ambelanao"
+            artist="Rim ka"
+            image="/assets/images/album.JPG"
+        />
+        <MusicCard
+            title="Aza ambelanao"
+            artist="Rim ka"
+            image="/assets/images/album.JPG"
+        />
+        
+        </div>
+        <!-- music player -->
+        <!-- PLAYER -->
+         <!-- PLAYER -->
+        <div
+            class="
+            fixed
+            bottom-0
+            left-0
+            right-0
+            z-50
+
+            bg-[#121212]/95
+            border-t
+            border-white/10
+
+            px-6
+            py-4
+
+            backdrop-blur-xl
+            "
+        >
+            <div class="flex items-center justify-between">
+
+                <!-- LEFT -->
+                <div class="flex items-center gap-4">
+
+                    <!-- Cover -->
+                    <div
+                        class="
+                        w-16
+                        h-16
+                        overflow-hidden
+                        rounded-lg
+                        shadow-lg
+                        "
+                    >
+                        <img
+                            src="/assets/images/album.JPG"
+                            class="w-full h-full object-cover"
+                        />
+                    </div>
+
+                    <!-- Info -->
+                    <div>
+                        <h2 class="text-white font-bold">
+                            Aza ambelanao
+                        </h2>
+
+                        <p class="text-gray-400 text-sm">
+                            Rim ka
+                        </p>
+                    </div>
+
+                    <!-- Heart -->
+                    <button
+                        class="
+                        text-gray-400
+                        hover:text-green-500
+                        transition-all
+                        "
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            class="w-5 h-5"
+                        >
+                            <path
+                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                                2 5.42 4.42 3 7.5 3c1.74 0 3.41.81
+                                4.5 2.09C13.09 3.81 14.76 3
+                                16.5 3 19.58 3 22 5.42
+                                22 8.5c0 3.78-3.4 6.86-8.55
+                                11.54L12 21.35z"
+                            />
+                        </svg>
+                    </button>
+
+                </div>
+
+                <!-- CENTER -->
+                <div class="flex flex-col items-center w-full max-w-xl">
+
+                    <!-- Controls -->
+                    <div class="flex items-center gap-5">
+
+                        <!-- Previous -->
+                        <button
+                            class="
+                            text-white
+                            hover:scale-110
+                            transition-all
+                            "
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                                class="w-6 h-6"
+                            >
+                                <path
+                                    d="M6 6h2v12H6zm3.5 6L18 18V6z"
+                                />
+                            </svg>
+                        </button>
+
+                        <!-- Pause -->
+                        <button
+                            class="
+                            bg-white
+                            p-3
+                            rounded-full
+
+                            hover:scale-110
+                            active:scale-95
+
+                            transition-all
+                            "
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="black"
+                                viewBox="0 0 24 24"
+                                class="w-6 h-6"
+                            >
+                                <path
+                                    d="M6 5h4v14H6zm8 0h4v14h-4z"
+                                />
+                            </svg>
+                        </button>
+
+                        <!-- Next -->
+                        <button
+                            class="
+                            text-white
+                            hover:scale-110
+                            transition-all
+                            "
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                                class="w-6 h-6"
+                            >
+                                <path
+                                    d="M16 6h2v12h-2zm-10.5 6L14 6v12z"
+                                />
+                            </svg>
+                        </button>
+
+                    </div>
+
+                    <!-- Progress -->
+                    <div class="flex items-center gap-3 w-full mt-3">
+
+                        <span class="text-xs text-gray-400">
+                            1:24
+                        </span>
+
+                        <div
+                            class="
+                            w-full
+                            h-1
+                            bg-gray-700
+                            rounded-full
+                            overflow-hidden
+                            "
+                        >
+                            <div
+                                class="
+                                w-[40%]
+                                h-full
+                                bg-white
+                                rounded-full
+                                "
+                            ></div>
+                        </div>
+
+                        <span class="text-xs text-gray-400">
+                            3:45
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <!-- RIGHT -->
+                <div class="flex items-center gap-3">
+
+                    <!-- Volume -->
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                        class="w-5 h-5 text-white"
+                    >
+                        <path
+                            d="M3 10v4h4l5 5V5L7 10H3zm13.5
+                            2c0-1.77-1-3.29-2.5-4.03v8.05
+                            c1.5-.73 2.5-2.25 2.5-4.02z"
+                        />
+                    </svg>
+
+                    <!-- Volume bar -->
+                    <div
+                        class="
+                        w-24
+                        h-1
+                        bg-gray-700
+                        rounded-full
+                        overflow-hidden
+                        "
+                    >
+                        <div
+                            class="
+                            w-[70%]
+                            h-full
+                            bg-white
+                            "
+                        ></div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
     
-    <MusicCard
-        title="Aza ambelanao"
-        artist="Rim ka"
-        image="/assets/images/album.JPG"
-    />
-    <p class="text-white">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Laboriosam accusamus laudantium aut ex odio iure ab dolores et quasi maiores eaque, deserunt rem voluptates soluta quo iusto pariatur vitae voluptatem molestiae in excepturi! Hic, est magnam quod officiis dolorem necessitatibus magni itaque at quo labore aut! Tempora blanditiis dolores assumenda ipsum laborum accusantium suscipit perferendis, sit placeat reprehenderit! Iste aperiam minus rerum omnis maiores quaerat quia magni suscipit ex vitae illo aspernatur laboriosam error fugit quos incidunt qui amet repudiandae, tenetur fuga! Et recusandae dicta id cum natus aut quae exercitationem quod delectus soluta molestias, amet itaque corrupti. Hic perspiciatis incidunt quas fugit nam aliquam. Consequuntur doloremque excepturi ab similique, ipsam consequatur inventore atque repudiandae corrupti incidunt iusto aliquid accusamus perspiciatis et autem reprehenderit deleniti necessitatibus tempora voluptate. Illum alias fuga voluptate quae! Numquam officia nam pariatur facere, vel dolor aut asperiores esse molestiae exercitationem obcaecati aperiam, vitae delectus laudantium maiores quam tempora dolorum. Minus tempore cum beatae accusamus et natus doloribus reiciendis! Dolore, quisquam. Beatae ut dolorem, consectetur ullam placeat delectus enim sapiente quia, nihil incidunt sequi iste. Esse, similique ducimus? Nobis sapiente, repellat nisi ducimus cum officiis numquam odit possimus. Recusandae consectetur reiciendis dignissimos rerum. Esse voluptatem vel voluptates quibusdam cum officiis aut, a consectetur architecto accusamus quaerat reiciendis distinctio facere, illum aspernatur, eius ratione quos illo sed eos. Eum nobis, quasi sapiente animi quo a id nam totam, tempora provident quidem dolorem minima, ea at quos dicta est qui ratione! Error ex doloremque, explicabo amet eligendi ipsum nulla. Sapiente pariatur at adipisci? Illo itaque non obcaecati rerum pariatur nihil odit illum dicta tenetur aspernatur dolorem et, rem laudantium sed amet qui facere dolor mollitia praesentium minima debitis eligendi. Assumenda officiis laudantium beatae magnam necessitatibus officia omnis ea, atque nesciunt, rerum ut perspiciatis inventore consequuntur quaerat nostrum explicabo tempore odio maiores. Eligendi, enim animi possimus et placeat quisquam magni earum temporibus perferendis! Perspiciatis harum, vel aliquid hic nulla animi itaque et cumque commodi labore eius, perferendis atque, illo maiores dolor! Adipisci cumque consectetur doloremque error, debitis quae quaerat nam praesentium sed suscipit dolores! Ea error vel explicabo? Ipsam iure pariatur minima incidunt excepturi totam praesentium voluptates illum sint harum beatae fugiat architecto commodi nisi facere recusandae aut debitis, modi ratione quo dicta. Debitis ex nisi, facilis quos cupiditate magni nesciunt nemo suscipit quisquam vitae sit, deleniti praesentium voluptatum placeat, dignissimos numquam nihil? Dicta possimus consectetur, qui saepe delectus debitis. Impedit nostrum qui velit illo eaque maiores voluptatum numquam enim provident nemo ex consectetur atque porro quo in illum pariatur quisquam distinctio voluptatibus dicta sapiente, asperiores quod. Eum dicta ducimus, similique sit rerum vel ut aperiam provident mollitia, placeat temporibus quisquam modi distinctio odit. Eum rem, eius odio neque inventore a repudiandae accusamus minima aperiam recusandae? Veritatis modi illo excepturi odit, cupiditate animi repellendus quae dolorum? Alias sit ea ad delectus eaque consequuntur dicta temporibus aut itaque id magni, officiis aliquam enim fugiat suscipit aspernatur! Totam ex itaque distinctio accusamus repellendus hic, magni natus corporis quam? Consequatur temporibus, quod, assumenda perferendis exercitationem sit, eligendi iusto aperiam tempore fugiat quis iste aspernatur doloribus ex. Nobis aut maxime inventore a dolor tenetur officia! Incidunt ea quia amet praesentium dolorem reprehenderit. Laboriosam doloremque facilis deleniti quisquam soluta enim exercitationem nostrum placeat ad explicabo, velit voluptate consequatur quis accusamus minus suscipit! Exercitationem quasi, voluptates aliquam libero, modi consequatur sapiente eius aperiam ipsum tempore ut, totam provident sed maxime quaerat voluptatibus ullam veniam voluptate eaque quod suscipit. Exercitationem quo quasi sapiente nisi nihil ipsum, alias aperiam. Ea aliquid, saepe veniam impedit nostrum consequatur ipsa reprehenderit necessitatibus odit dolores esse laborum ab aperiam totam eveniet qui officiis non itaque eaque. Dolor debitis et at nihil! Voluptates totam expedita recusandae aut qui debitis harum excepturi reprehenderit, ipsum ipsam, et quam veritatis autem labore soluta officia eos exercitationem cumque ex doloremque vel dolorum nisi obcaecati facere! Delectus quod, esse aperiam maxime repudiandae perferendis blanditiis adipisci tenetur dolorem omnis sint veritatis autem in consequuntur consequatur? Iure quasi, ut a alias temporibus excepturi cumque minima rem architecto voluptate recusandae, enim quae porro minus distinctio voluptatum. Magni sit eaque modi odio unde, illum omnis iure illo? Libero deleniti nostrum voluptatum amet quaerat fugit est repellat enim impedit non dolorum eos, sequi soluta odit suscipit perferendis, quae ratione, neque dicta facere. Eligendi illo fugit eos incidunt sapiente doloribus magni tenetur corrupti saepe quam, aspernatur quidem, impedit quia distinctio vel nesciunt nostrum reprehenderit quasi. Voluptatibus molestias ab est itaque ipsum omnis perspiciatis sequi, eum cum reiciendis incidunt! Quia, consequatur hic? Pariatur earum maxime magni minus modi culpa, atque voluptate tenetur quae consequuntur eos repellendus porro accusantium beatae cumque dolores eum repudiandae sunt doloremque cum quisquam deleniti sed! Eos suscipit hic similique, veritatis placeat error praesentium dolorem maiores quod aperiam magni dolore unde? Dolores nam cumque repudiandae? Architecto repudiandae fuga sed quas quia accusantium aspernatur nam voluptates obcaecati magni deserunt blanditiis ipsum quae quasi et qui quod odio magnam, neque adipisci quo omnis quaerat labore nostrum? Voluptates suscipit deserunt odit velit, reprehenderit perspiciatis molestias, veritatis ad facere ipsum eaque fuga? Molestiae expedita delectus magnam quia voluptatibus quae. Sapiente dicta asperiores, voluptate consectetur laudantium laborum distinctio neque doloribus obcaecati impedit vero dolores sequi, quam ad. Eius, aperiam ullam. In ullam minima ut libero aut maxime ex sapiente perspiciatis iste alias! Necessitatibus corrupti deleniti accusamus ipsam nulla labore quo corporis sequi, tempora perspiciatis a sapiente aperiam! Similique fuga nobis est quis quibusdam perferendis saepe ratione magni totam asperiores at impedit facilis esse ducimus consectetur autem ipsa, praesentium doloremque cupiditate repellendus. Illo, numquam exercitationem tempore obcaecati sit similique reiciendis dolore qui quas! Est sit laudantium nemo incidunt repellendus quasi rerum natus a delectus tempora. Expedita laborum veritatis non suscipit enim nesciunt sunt quibusdam, iste ad architecto quis eius quos ipsam sequi porro est accusamus necessitatibus sint nihil saepe. Pariatur sequi itaque laborum? Iusto rem vel adipisci sit maxime natus nesciunt eos accusantium cupiditate, perferendis delectus minus libero voluptates sequi, laboriosam cum eligendi sapiente totam, eum aut laudantium dolorem quibusdam a! Cum quibusdam repellat nam modi suscipit</p>
+     </div>
 </template>

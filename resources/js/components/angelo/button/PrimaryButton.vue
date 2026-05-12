@@ -1,31 +1,77 @@
-<script setup>
-defineProps({
-    loading: Boolean
+<script setup lang="ts">
+import { computed } from 'vue';
+const props = defineProps({
+    loading: Boolean,
+    size: {
+        type: String,
+        default: 'md',
+    },
+    color: {
+        type: String,
+        default: 'white',
+    },
+
+    type: {
+        type: String,
+        default: 'button',
+    },
 })
+
+const sizeClasses = computed(() => {
+    switch (props.size) {
+        case 'xs':
+            return 'px-2 py-1 text-xs';
+        case 'sm':
+            return 'px-4 py-1 text-sm';
+        case 'lg':
+            return 'px-8 py-3 text-lg';
+
+        default:
+            return 'px-4 py-1 text-sm text-base';
+    }
+});
+const colorClasses = computed(() => {
+    switch (props.color) {
+        case 'white':
+            return 'text-white';
+        case 'black':
+            return 'text-black';
+        case 'red':
+            return 'text-red-800';
+
+        default:
+            return 'text-white';
+    }
+});
 </script>
 
 <template>
     <button
+        :type="type"
+        :disabled="loading"
+        :class="[
+            sizeClasses,
+            colorClasses
+        ]"
         class="
         bg-[#057430]
         hover:bg-green-800
         active:scale-95
-        transition
+        transition-all
+        duration-300
         px-6
-        py-1
+        py-2
         rounded-full
-        text-white
         text-sm
         font-bold
         flex
         items-center
         justify-center
         gap-2
-        w-[max-content]
+        w-max
         cursor-pointer
         disabled:opacity-50
         "
-        :disabled="loading"
     >
         <span v-if="loading">
             Chargement...

@@ -18,7 +18,7 @@ defineProps({
         transition
         cursor-pointer
         group
-        w-[300px]
+        w-[200px]
         shadow-[0 2 20px red]
         "
     >
@@ -28,7 +28,7 @@ defineProps({
                 :src="image"
                 class="
                 w-full
-                h-[220px]
+                h-[150px]
                 object-cover
                 rounded-lg
                 "
