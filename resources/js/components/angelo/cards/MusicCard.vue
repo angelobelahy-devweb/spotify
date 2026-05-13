@@ -22,17 +22,18 @@ defineProps({
         "
     >
         <div class="relative">
-
-            <img
-                :src="image"
-                class="
-                w-full
-                h-[150px]
-                object-cover
-                rounded-lg
-                "
-            />
-
+            <div class="relative">
+                <img
+                    :src="image"
+                    class="
+                    w-full
+                    h-[150px]
+                    object-cover
+                    rounded-lg
+                    "
+                />
+                <strong class="badge bg-white/80 text-[#057430] px-2 text-xs absolute top-2 right-2">Dancehall</strong>
+            </div>
             <button
                 class="
                 absolute

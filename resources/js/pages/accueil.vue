@@ -9,7 +9,7 @@ import { ChevronFirst, ChevronLast } from 'lucide-vue-next';
     <!-- <PrimaryButton :loading="true">
         Sauvegarder
     </PrimaryButton> -->
-    <div class="relative w-full min-h-screen">
+    <div class="relative w-full min-h-screen ">
         <div class="flex gap-2 my-2 flex-wrap">
             <PrimaryButton size="xs">
                 All
@@ -43,7 +43,7 @@ import { ChevronFirst, ChevronLast } from 'lucide-vue-next';
             </PrimaryButton>
         </div>
         <!-- Music List -->
-        <div class="flex flex-wrap items-center justify-between gap-5">
+        <div class="flex flex-wrap items-center justify-start gap-2 ">
         <MusicCard
             title="Aza ambelanao"
             artist="Rim ka"

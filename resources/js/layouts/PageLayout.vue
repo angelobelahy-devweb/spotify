@@ -16,9 +16,9 @@ const sidebarOpen = ref(true)
 </script>
 
 <template>
-  <div class="relative w-full flex min-h-screen bg-[#212121] overflow-y-hidden">
+  <div class="relative w-full flex max-h-screen bg-[#212121] overflow-y-hidden">
     <!-- Sidebar -->
-    <aside :class="sidebarOpen ? 'w-64' : 'w-20'" class=" p-2 bg-[#212121] text-white transition-all duration-300 ">
+    <aside :class="sidebarOpen ? 'w-60' : 'w-15'" class=" p-2 bg-[#212121] text-white transition-all duration-300 ">
       <div  class="flex justify-start items-center">
         <Link href="" class="text-xl font-bold">
           <img :src="logo" alt="logo" class="w-30">
@@ -153,7 +153,7 @@ const sidebarOpen = ref(true)
         }"
       >
 
-        <div class="relative z-10 p-5">
+        <div class="relative z-10 p-[10px_10px_8rem_10px]">
           <slot />
         </div>
       </main>
