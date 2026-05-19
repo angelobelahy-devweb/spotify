@@ -1,18 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\angelo;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class AccueilController extends Controller
+class MusicController extends Controller
 {
     //
-    public function accueil() {
-        return Inertia::render("Accueil");
-    }
-
     public function album() {
         return Inertia::render("music/album/AlbumList");
     }
