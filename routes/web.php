@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\angelo\AccueilController;
+use App\Http\Controllers\ProfileUserController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -13,5 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::get('/', [AccueilController::class, 'accueil']);
+Route::get('/settings/ProfileUser', [ProfileUserController::class, 'index']);
 
 require __DIR__.'/settings.php';
+
