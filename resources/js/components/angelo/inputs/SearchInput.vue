@@ -22,6 +22,7 @@ import { Search } from 'lucide-vue-next'
             bg-transparent
             outline-none
             text-white
+            text-xs
             ml-3
             w-full
             "

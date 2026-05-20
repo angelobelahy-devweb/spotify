@@ -1,15 +1,17 @@
 <script setup>
-defineProps({
-    isOpen: Boolean
-})
+import { defineEmits, defineProps } from 'vue'
+import logo from '@/assets/images/logo.png'
+const emits = defineEmits(['close-modal'])
+    
 
-const emits = defineEmits(['close'])
+    const closeModal = () => {
+        emits('close-modal', false);
+    }
 </script>
 
 <template>
 
     <div
-        v-if="isOpen"
         class="
         fixed
         inset-0
@@ -32,13 +34,13 @@ const emits = defineEmits(['close'])
 
             <div class="flex justify-between mb-5">
 
-                <h2 class="text-white text-xl font-bold">
-                    Modal
-                </h2>
+                <div class="text-white text-xl font-bold">
+                    <img :src="logo" alt="logo" class="w-10">
+                </div>
 
                 <button
-                    @click="emits('close')"
-                    class="text-white"
+                    @click="emits('close-modal')"
+                    class="text-white cursor-pointer w-8 h-8 rounded-[5px] hover:bg-red-600 bg-[#ab072e]"
                 >
                     X
                 </button>

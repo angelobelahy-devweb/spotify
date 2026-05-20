@@ -54,8 +54,8 @@ const colorClasses = computed(() => {
             colorClasses
         ]"
         class="
-        bg-[#057430]
-        hover:bg-green-800
+        bg-[#33437e]
+        hover:bg-[#364a92]
         active:scale-95
         transition-all
         duration-300
