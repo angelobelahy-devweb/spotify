@@ -85,7 +85,23 @@ defineOptions({
 
             <Button
                 type="submit"
-                class="mt-2 w-full"
+                class="mt-2 w-full 
+                bg-[#33437e]
+                hover:bg-[#364a92]
+                active:scale-95
+                transition-all
+                duration-300
+                px-6
+                py-2
+                rounded-full
+                text-sm
+                font-bold
+                flex
+                items-center
+                justify-center
+                gap-2
+                cursor-pointer
+                disabled:opacity-50 text-white"
                 tabindex="5"
                 :disabled="processing"
                 data-test="register-user-button"

@@ -90,13 +90,29 @@ defineProps<{
 
             <Button
                 type="submit"
-                class="mt-4 w-full"
+                class="mt-4 w-full 
+                bg-[#33437e]
+                hover:bg-[#364a92]
+                active:scale-95
+                transition-all
+                duration-300
+                px-6
+                py-2
+                rounded-full
+                text-sm
+                font-bold
+                flex
+                items-center
+                justify-center
+                gap-2
+                cursor-pointer
+                disabled:opacity-50 text-white"
                 :tabindex="4"
                 :disabled="processing"
                 data-test="login-button"
             >
                 <Spinner v-if="processing" />
-                Log in
+                Se connecter
             </Button>
         </div>
 

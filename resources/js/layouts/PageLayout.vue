@@ -1,17 +1,28 @@
 
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { Head, Link } from '@inertiajs/vue3'
 import logo from '@/assets/images/logo.png'
-import PrimaryButton from '@/components/angelo/button/PrimaryButton.vue';
-import logo1 from '@/assets/images/lunnette.JPG';
-import backgroundImage from '@/assets/images/font_casque.png';
-import SearchInput from '@/components/angelo/inputs/SearchInput.vue';
-import MusicPlayeur from '@/components/angelo/cards/MusicPlayeur.vue';
-import { AlbumIcon, CogIcon, DiscAlbumIcon, HeartIcon, HomeIcon, MenuIcon, UserIcon } from 'lucide-vue-next';
-import MusicPlay from '@/components/angelo/cards/MusicPlay.vue';
-import BaseModal from '@/components/angelo/modals/BaseModal.vue';
+import PrimaryButton from '@/components/angelo/button/PrimaryButton.vue'
+import logo1 from '@/assets/images/lunnette.JPG'
+import backgroundImage from '@/assets/images/font_casque.png'
+import SearchInput from '@/components/angelo/inputs/SearchInput.vue'
+import MusicPlayeur from '@/components/angelo/cards/MusicPlayeur.vue'
+import { AlbumIcon, CogIcon, DiscAlbumIcon, HeartIcon, HomeIcon, MenuIcon, UserIcon } from 'lucide-vue-next'
+import MusicPlay from '@/components/angelo/cards/MusicPlay.vue'
+import BaseModal from '@/components/angelo/modals/BaseModal.vue'
+import { dashboard, login, register } from '@/routes'
+
+
+withDefaults(
+    defineProps<{
+        canRegister: boolean;
+    }>(),
+    {
+        canRegister: true,
+    },
+);
 
 
 const isOpenModal = ref(false);
@@ -51,7 +62,7 @@ const sidebarOpen = ref(true)
             </li>
           </Link>
           <Link href="/artistes" class="flex gap-2 items-center p-2 hover:bg-[#33437ed0] cursor-pointer rounded">
-            
+
             <UserIcon class="w-4 h-4" />
             <li class="text-sm">
               Artiste
@@ -90,12 +101,31 @@ const sidebarOpen = ref(true)
         </button>
         <div class="flex gap-5 items-center">
           <SearchInput/>
-          <PrimaryButton
-          size="xs">
-              Explore premium
-          </PrimaryButton>
-          <div class="flex items-center gap-3">
-            <img :src="logo1" class="rounded-full w-10" alt="profil"/>
+          <div v-if="$page.props.auth.user" class="flex gap-5 items-center">
+              <PrimaryButton
+              size="xs">
+                  Explore premium
+              </PrimaryButton>
+              <div class="flex items-center gap-3">
+                <img :src="logo1" class="rounded-full w-10" alt="profil"/>
+              </div>
+          </div>
+          <div v-else class="flex gap-3 items-center">
+                <Link
+                    :href="login()"
+                >
+                    <PrimaryButton>
+                     Se connecter
+                    </PrimaryButton>
+                </Link>
+                <Link
+                    v-if="canRegister"
+                    :href="register()"
+                >
+                    <PrimaryButton>
+                        Créer un compte
+                    </PrimaryButton>
+                </Link>
           </div>
         </div>
       </header>
@@ -124,14 +154,14 @@ const sidebarOpen = ref(true)
       </main>
     </div>
 
-    
+
   </div>
   <BaseModal v-if="isOpenModal" @close-modal="closeModal">
       <MusicPlayeur/>
   </BaseModal>
 </template>
 
-<style scoop>
+<style scoped>
 @font-face {
   font-family: 'titre'; /* OBLIGATOIRE */
   src: url('/assets/fonts/titre.ttf') format('truetype'); /* préciser le format */
@@ -141,7 +171,7 @@ const sidebarOpen = ref(true)
 
 .titre {
   font-family: 'titre', sans-serif;
-  
+
 }
 @font-face {
   font-family: 'text'; /* OBLIGATOIRE */
