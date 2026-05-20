@@ -1,52 +1,180 @@
-<script setup lang="ts">
+<script setup>
 import PrimaryButton from '@/components/angelo/button/PrimaryButton.vue';
 import MusicCard from '@/components/angelo/cards/MusicCard.vue';
-import { ChevronFirst, ChevronLast } from 'lucide-vue-next';
+
+// import { ref } from 'vue';
+
+// const scrollContainer = ref(null)
+
+// const scrollLeft = () => {
+//     scrollContainer.value.scrollBy({
+//         left: -200,
+//         behavior: 'smooth',
+//     })
+// }
+
+// const scrollRight = () => {
+//     scrollContainer.value.scrollBy({
+//         left: 200,
+//         behavior: 'smooth',
+//     })
+// }
 
 </script>
 
+
+
 <template>
-    <!-- <PrimaryButton :loading="true">
-        Sauvegarder
-    </PrimaryButton> -->
+    
     <div class="relative w-full min-h-screen ">
-        <!-- Je veux que ceci est un carousel avec des bouttons droite et gauche -->
-        <div class="flex gap-2 my-2 flex-wrap">
-            <PrimaryButton size="xs">
-                All
-            </PrimaryButton>
-            <PrimaryButton size="xs" class="bg-[#c8cac9] hover:text-white" color="black">
-                Pop
-            </PrimaryButton>
-            <PrimaryButton size="xs" class="bg-[#c8cac9] hover:text-white" color="black">
-                Rap
-            </PrimaryButton>
-            <PrimaryButton size="xs" class="bg-[#c8cac9] hover:text-white" color="black">
-                Rock
-            </PrimaryButton>
-            <PrimaryButton size="xs" class="bg-[#c8cac9] hover:text-white" color="black">
-                Metal
-            </PrimaryButton>
-            <PrimaryButton size="xs" class="bg-[#c8cac9] hover:text-white" color="black">
-                Jazz 
-            </PrimaryButton>
-            <PrimaryButton size="xs" class="bg-[#c8cac9] hover:text-white" color="black">
-                Blues 
-            </PrimaryButton>
-            <PrimaryButton size="xs" class="bg-[#c8cac9] hover:text-white" color="black">
-                Musique Classique
-            </PrimaryButton>
-            <PrimaryButton size="xs" class="bg-[#c8cac9] hover:text-white" color="black">
-                Dancehall 
-            </PrimaryButton>
-            <PrimaryButton size="xs" class="bg-[#c8cac9] hover:text-white" color="black">
-                Country  
-            </PrimaryButton>
-        </div>
+        <!-- <div class="relative w-full">
+            <button
+                @click="scrollLeft"
+                class="
+                    absolute
+                    left-0
+                    top-1/2
+                    -translate-y-1/2
+                    z-20
+                    bg-[#33437e]
+                    hover:bg-black
+                    text-white
+                    w-10
+                    h-10
+                    rounded-full
+                    flex
+                    items-center
+                    justify-center
+                    shadow-lg
+                "
+            >
+                ‹
+            </button>
+
+   
+            <div
+                ref="scrollContainer"
+                class="
+                    flex
+                    flex-nowrap
+                    gap-2
+                    overflow-x-auto
+                    scroll-smooth
+                    whitespace-nowrap
+                    scrollbar-hide
+                    px-12
+                    py-2
+                    w-full
+                "
+            >
+                <PrimaryButton
+                    size="xs"
+                    class="flex-shrink-0"
+                >
+                    All
+                </PrimaryButton>
+
+                <PrimaryButton
+                    size="xs"
+                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
+                    color="black"
+                >
+                    Pop
+                </PrimaryButton>
+
+                <PrimaryButton
+                    size="xs"
+                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
+                    color="black"
+                >
+                    Rap
+                </PrimaryButton>
+
+                <PrimaryButton
+                    size="xs"
+                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
+                    color="black"
+                >
+                    Rock
+                </PrimaryButton>
+
+                <PrimaryButton
+                    size="xs"
+                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
+                    color="black"
+                >
+                    Metal
+                </PrimaryButton>
+
+                <PrimaryButton
+                    size="xs"
+                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
+                    color="black"
+                >
+                    Jazz
+                </PrimaryButton>
+
+                <PrimaryButton
+                    size="xs"
+                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
+                    color="black"
+                >
+                    Blues
+                </PrimaryButton>
+
+                <PrimaryButton
+                    size="xs"
+                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
+                    color="black"
+                >
+                    Musique Classique
+                </PrimaryButton>
+
+                <PrimaryButton
+                    size="xs"
+                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
+                    color="black"
+                >
+                    Dancehall
+                </PrimaryButton>
+
+                <PrimaryButton
+                    size="xs"
+                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
+                    color="black"
+                >
+                    Country
+                </PrimaryButton>
+            </div>
+
+    
+            <button
+                @click="scrollRight"
+                class="
+                    absolute
+                    right-0
+                    top-1/2
+                    -translate-y-1/2
+                    z-20
+                    bg-[#33437e]
+                    hover:bg-black
+                    text-white
+                    w-10
+                    h-10
+                    rounded-full
+                    flex
+                    items-center
+                    justify-center
+                    shadow-lg
+                "
+            >
+                ›
+            </button>
+        </div> -->
         <!-- Music List -->
-         <h1 class="text-[#e4e8f3d0] text-2xl my-2">Nouveautés</h1>
+        <h1 class="text-[#e4e8f3d0] text-2xl my-2">Nouveautés</h1>
         <!-- Je veux que ceci est un carousel avec des bouttons droite et gauche -->
-        <div class="flex flex-wrap items-center justify-start gap-2 ">
+        <div class="flex flex-wrap items-center justify-start gap-2 w-full">
             <MusicCard
                 title="Aza ambelanao"
                 artist="Rim ka"
@@ -161,3 +289,15 @@ import { ChevronFirst, ChevronLast } from 'lucide-vue-next';
         </div>
      </div>
 </template>
+
+<style scoped>
+/* Cache scrollbar */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+</style>

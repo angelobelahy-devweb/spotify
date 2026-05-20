@@ -11,9 +11,18 @@ import SearchInput from '@/components/angelo/inputs/SearchInput.vue';
 import MusicPlayeur from '@/components/angelo/cards/MusicPlayeur.vue';
 import { AlbumIcon, CogIcon, DiscAlbumIcon, HeartIcon, HomeIcon, MenuIcon, UserIcon } from 'lucide-vue-next';
 import MusicPlay from '@/components/angelo/cards/MusicPlay.vue';
+import BaseModal from '@/components/angelo/modals/BaseModal.vue';
 
 
-
+const isOpenModal = ref(false);
+console.log('1-',isOpenModal.value);
+const openModal = () => {
+    isOpenModal.value = true;
+    console.log(isOpenModal.value);
+}
+const closeModal = (data) => {
+    isOpenModal.value = data;
+}
 
 const sidebarOpen = ref(true)
 </script>
@@ -63,12 +72,12 @@ const sidebarOpen = ref(true)
         </ul>
       </nav>
       <!-- Music Playeur -->
-       <MusicPlay class="fixed
-        bottom-0
-        left-0
-        right-0
-        w-full
-        z-50" />
+        <MusicPlay class="fixed
+          bottom-0
+          left-0
+          right-0
+          w-full
+          z-50" @click.prevent="openModal" />
     </aside>
 
     <!-- Main -->
@@ -117,6 +126,9 @@ const sidebarOpen = ref(true)
 
     
   </div>
+  <BaseModal v-if="isOpenModal" @close-modal="closeModal">
+      <MusicPlayeur/>
+  </BaseModal>
 </template>
 
 <style scoop>

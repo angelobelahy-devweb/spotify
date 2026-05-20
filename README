@@ -3,4 +3,6 @@ Couleur primaire : #33437e
 Couleur secondaire : #212121
 Couleur red : #ab072e
 
-2.
+2.<!-- <PrimaryButton :loading="true">
+        Sauvegarder
+    </PrimaryButton> -->

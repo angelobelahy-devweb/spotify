@@ -17,10 +17,10 @@
         <div class="flex flex-col items-center justify-center">
 
             <!-- LEFT -->
-            <div class="w-full flex flex-col items-start gap-4 mb-2">
+            <div class="w-full flex flex-col items-center gap-4 mb-2">
                 <!-- Cover -->
                 <div class="w-full flex justify-between gap-2">
-                    <div class="w-16 h-16 overflow-hidden rounded-lg shadow-lg flex justify-center">
+                    <div class="w-30 h-30 overflow-hidden rounded-full shadow-lg flex justify-center">
                         <img src="/assets/images/album.JPG" class="w-full h-full object-cover"/>
                     </div>
                     <!-- Heart -->
