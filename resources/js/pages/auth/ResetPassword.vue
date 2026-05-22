@@ -11,8 +11,8 @@ import { update } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'Reset password',
-        description: 'Please enter your new password below',
+        title: 'Réinitialiser le mot de passe',
+        description: 'Veuillez saisir votre nouveau mot de passe ci-dessous',
     },
 });
 
@@ -35,7 +35,7 @@ const inputEmail = ref(props.email);
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="email">Email</Label>
+                <Label for="email">Adresse e-mail</Label>
                 <Input
                     id="email"
                     type="email"
@@ -49,7 +49,7 @@ const inputEmail = ref(props.email);
             </div>
 
             <div class="grid gap-2">
-                <Label for="password">Password</Label>
+                <Label for="password">Mot de passe</Label>
                 <PasswordInput
                     id="password"
                     name="password"
@@ -62,7 +62,7 @@ const inputEmail = ref(props.email);
             </div>
 
             <div class="grid gap-2">
-                <Label for="password_confirmation"> Confirm password </Label>
+                <Label for="password_confirmation"> Confirmer le mot de passe </Label>
                 <PasswordInput
                     id="password_confirmation"
                     name="password_confirmation"
@@ -80,7 +80,7 @@ const inputEmail = ref(props.email);
                 data-test="reset-password-button"
             >
                 <Spinner v-if="processing" />
-                Reset password
+                Réinitialiser le mot de passe
             </Button>
         </div>
     </Form>
