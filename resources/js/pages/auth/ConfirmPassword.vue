@@ -9,9 +9,9 @@ import { store } from '@/routes/password/confirm';
 
 defineOptions({
     layout: {
-        title: 'Confirm your password',
+        title: 'Confirmer votre mot de passe ',
         description:
-            'This is a secure area of the application. Please confirm your password before continuing.',
+            "Il s'agit d'une zone sécurisée de l'application. Veuillez confirmer votre mot de passe avant de continuer.",
     },
 });
 </script>
@@ -26,7 +26,7 @@ defineOptions({
     >
         <div class="space-y-6">
             <div class="grid gap-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Mot de passe</Label>
                 <PasswordInput
                     id="password"
                     name="password"
@@ -46,7 +46,7 @@ defineOptions({
                     data-test="confirm-password-button"
                 >
                     <Spinner v-if="processing" />
-                    Confirm password
+                    Confirmer le mot de passe
                 </Button>
             </div>
         </div>

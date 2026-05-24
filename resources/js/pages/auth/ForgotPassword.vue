@@ -11,8 +11,8 @@ import { email } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'Forgot password',
-        description: 'Enter your email to receive a password reset link',
+        title: 'Mot de passe oublié',
+        description: 'Saisissez votre adresse e-mail pour recevoir un lien de réinitialisation du mot de passe',
     },
 });
 
@@ -34,7 +34,7 @@ defineProps<{
     <div class="space-y-6">
         <Form v-bind="email.form()" v-slot="{ errors, processing }">
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">Adresse E-mail</Label>
                 <Input
                     id="email"
                     type="email"
@@ -48,18 +48,33 @@ defineProps<{
 
             <div class="my-6 flex items-center justify-start">
                 <Button
-                    class="w-full"
+                    class="w-full
+                    bg-[#33437e]
+                    hover:bg-[#364a92]
+                    active:scale-95
+                    transition-all
+                    duration-300
+                    px-6
+                    py-2
+                    text-sm
+                    font-bold
+                    flex
+                    items-center
+                    justify-center
+                    gap-2
+                    cursor-pointer
+                    disabled:opacity-50 text-white"
                     :disabled="processing"
                     data-test="email-password-reset-link-button"
                 >
                     <Spinner v-if="processing" />
-                    Email password reset link
+                    Envoyer le lien de réinitialisation
                 </Button>
             </div>
         </Form>
 
         <div class="space-x-1 text-center text-sm text-muted-foreground">
-            <span>Or, return to</span>
+            <span>Ou, revenir à la page de</span>
             <TextLink :href="login()" class="text-white">connexion</TextLink>
         </div>
     </div>
