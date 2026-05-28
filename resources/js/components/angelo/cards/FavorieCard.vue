@@ -1,6 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3'
-import { HeartIcon } from 'lucide-vue-next';
+import { HeartIcon, Play } from 'lucide-vue-next';
 
 defineProps({
     number: String,
@@ -25,7 +25,7 @@ defineProps({
         
         "
     >
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <strong class="text-gray-400 text-xs">{{ number }}</strong>
                 <img
@@ -45,17 +45,33 @@ defineProps({
                         {{ artist }}
                     </p>
                 </div>
+                <!-- Heart -->
+                <button
+                    class="
+                    hover:text-gray-400
+                    text-[#fae311]
+                    transition-all
+                    cursor-pointer
+                    "
+                >
+                    <HeartIcon class="hover:fill-gray-400 hover:text-gray-400 text-[#fae311] fill-[#fae311] w-5 h-5" />
+                </button>
             </div>
-            <!-- Heart -->
+            
+            <!-- PLAY -->
             <button
                 class="
-                hover:text-gray-400
-                text-[#fae311]
+                bg-[#33437e]
+                p-2
+                rounded-full
+                hover:scale-110
+                active:scale-90
                 transition-all
                 cursor-pointer
+                w-[max-content]
                 "
             >
-                <HeartIcon class="hover:fill-gray-400 hover:text-gray-400 text-[#fae311] fill-[#fae311] w-5 h-5" />
+                <Play class="text-white fill-white w-4 h-4" />
             </button>
         </div>
     </Link>
