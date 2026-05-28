@@ -4,14 +4,17 @@
 import { ref } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 import logo from '@/assets/images/logo.png'
-import PrimaryButton from '@/components/angelo/button/PrimaryButton.vue'
-import logo1 from '@/assets/images/lunnette.JPG'
-import backgroundImage from '@/assets/images/font_casque.png'
-import SearchInput from '@/components/angelo/inputs/SearchInput.vue'
-import MusicPlayeur from '@/components/angelo/cards/MusicPlayeur.vue'
-import { AlbumIcon, CogIcon, DiscAlbumIcon, HeartIcon, HomeIcon, MenuIcon, UserIcon } from 'lucide-vue-next'
-import MusicPlay from '@/components/angelo/cards/MusicPlay.vue'
-import BaseModal from '@/components/angelo/modals/BaseModal.vue'
+
+
+import PrimaryButton from '@/components/angelo/button/PrimaryButton.vue';
+import logo1 from '@/assets/images/lunnette.JPG';
+import backgroundImage from '@/assets/images/font_casque.png';
+import SearchInput from '@/components/angelo/inputs/SearchInput.vue';
+import MusicPlayeur from '@/components/angelo/cards/MusicPlayeur.vue';
+import { AlbumIcon, CogIcon, DiscAlbumIcon, HeartIcon, HomeIcon, MenuIcon, Music, UserIcon } from 'lucide-vue-next';
+import MusicPlay from '@/components/angelo/cards/MusicPlay.vue';
+import BaseModal from '@/components/angelo/modals/BaseModal.vue';
+import FooterMusic from '@/components/angelo/footer/FooterMusic.vue';
 import { dashboard, login, register } from '@/routes'
 
 
@@ -51,37 +54,45 @@ const sidebarOpen = ref(true)
         <ul>
           <Link href="/" class="flex gap-2 items-center p-2 hover:bg-[#33437ed0] cursor-pointer rounded">
             <HomeIcon class="w-4 h-4" />
-            <li class="text-sm">
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
               Accueil
             </li>
           </Link>
           <Link href="/albums" class="flex gap-2 items-center p-2 hover:bg-[#33437ed0] cursor-pointer rounded" active-class="text-green-400 font-semibold">
             <DiscAlbumIcon class="w-4 h-4" />
-            <li class="text-sm">
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
               Album
             </li>
           </Link>
           <Link href="/artistes" class="flex gap-2 items-center p-2 hover:bg-[#33437ed0] cursor-pointer rounded">
 
             <UserIcon class="w-4 h-4" />
-            <li class="text-sm">
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
               Artiste
+            </li>
+          </Link>
+          <Link href="/tracks/create" class="flex gap-2 items-center p-2 hover:bg-[#33437ed0] cursor-pointer rounded">
+              <Music class="w-4 h-4" />
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
+              Music
             </li>
           </Link>
           <Link href="/favories" class="flex gap-2 items-center p-2 hover:bg-[#33437ed0] cursor-pointer rounded">
               <HeartIcon class="w-4 h-4" />
-            <li class="text-sm">
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
               Favorie
             </li>
           </Link>
           <Link href="/parameters" class="flex gap-2 items-center p-2 hover:bg-[#33437ed0] cursor-pointer rounded">
               <CogIcon class="w-4 h-4" />
-            <li class="text-sm">
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
               Paramettre
             </li>
           </Link>
         </ul>
       </nav>
+      <span class="blurr"></span>
+      <span class="blurr"></span>
       <!-- Music Playeur -->
         <MusicPlay class="fixed
           bottom-0
@@ -95,7 +106,6 @@ const sidebarOpen = ref(true)
     <div class="flex-1 flex flex-col">
       <!-- Navbar -->
       <header class="bg-[#212121de] p-4 flex justify-between items-center text-black">
-        <!-- <button @click="sidebarOpen = !sidebarOpen" class="text-white">☰</button> -->
         <button @click="sidebarOpen = !sidebarOpen" class="text-black cursor-pointer bg-[#33437e] hover:text-dark flex justify-center items-center w-8 h-8 hover:bg-[#33437ed0] rounded-sm">
           <MenuIcon  class="w-7 h-7"/>
         </button>
@@ -151,6 +161,9 @@ const sidebarOpen = ref(true)
         <div class="relative z-10 p-[10px_10px_6rem_10px]">
           <slot />
         </div>
+        <div>
+          <FooterMusic class="mb-[5rem]"/>
+        </div>
       </main>
     </div>
 
@@ -159,6 +172,7 @@ const sidebarOpen = ref(true)
   <BaseModal v-if="isOpenModal" @close-modal="closeModal">
       <MusicPlayeur/>
   </BaseModal>
+
 </template>
 
 <style scoped>
@@ -186,4 +200,11 @@ const sidebarOpen = ref(true)
 #main {
   background: red;
 }
+.blurr {
+  position: absolute;
+  box-shadow: 0 0 1000px 50px rgb(39, 59, 133);
+  z-index: 20;
+}
+
 </style>
+

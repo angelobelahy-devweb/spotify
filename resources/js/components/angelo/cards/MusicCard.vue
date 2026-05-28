@@ -11,7 +11,6 @@ defineProps({
 <template>
     <div
     class="
-    w-[200px]
     bg-[#212121]
     hover:bg-[#212121d0]
     transition

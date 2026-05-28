@@ -1,5 +1,6 @@
 <script setup>
     import { ChevronFirst, ChevronLast, HeartIcon, PauseIcon } from 'lucide-vue-next';
+
 </script>
 <template>
     <!-- PLAYER -->

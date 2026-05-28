@@ -1,24 +1,81 @@
 <script setup>
+
+
 import PrimaryButton from '@/components/angelo/button/PrimaryButton.vue';
 import MusicCard from '@/components/angelo/cards/MusicCard.vue';
 
-// import { ref } from 'vue';
+import 'vue3-carousel/carousel.css';
+import { Carousel, Slide, Navigation, injectCarousel } from 'vue3-carousel'
 
-// const scrollContainer = ref(null)
+const musics = [
+  {
+    id: 1,
+    title: 'Aza ambelanao',
+    artist: 'Rim ka',
+    image: '/assets/images/1.JPG'
+  },
+  {
+    id: 2,
+    title: 'Song 2',
+    artist: 'Artist 2',
+    image: '/assets/images/2.JPG'
+  },
+  {
+    id: 3,
+    title: 'Song 3',
+    artist: 'Artist 3',
+    image: '/assets/images/3.JPG'
+  },
+  {
+    id: 4,
+    title: 'Song 4',
+    artist: 'Artist 4',
+    image: '/assets/images/4.JPG'
+  },
+  {
+    id: 5,
+    title: 'Aza ambelanao',
+    artist: 'Rim ka',
+    image: '/assets/images/5.JPG'
+  },
+  {
+    id: 6,
+    title: 'Song 6',
+    artist: 'Artist 6',
+    image: '/assets/images/6.JPG'
+  },
+  {
+    id: 8,
+    title: 'Song 8',
+    artist: 'Artist 8',
+    image: '/assets/images/8.JPG'
+  },
+  {
+    id: 9,
+    title: 'Song 9',
+    artist: 'Artist 9',
+    image: '/assets/images/9.JPG'
+  }
+]
 
-// const scrollLeft = () => {
-//     scrollContainer.value.scrollBy({
-//         left: -200,
-//         behavior: 'smooth',
-//     })
-// }
 
-// const scrollRight = () => {
-//     scrollContainer.value.scrollBy({
-//         left: 200,
-//         behavior: 'smooth',
-//     })
-// }
+const config = {
+  height: 300,
+//   itemsToShow: 3,
+  gap: 5,
+  itemsToShow: 6,
+//   gap: 10,
+//   wrapAround: true,
+  breakpoints: {
+    640: {
+      itemsToShow: 3,
+    },
+    1024: {
+      itemsToShow: 5,
+    },
+  },
+}
+
 
 </script>
 
@@ -26,42 +83,17 @@ import MusicCard from '@/components/angelo/cards/MusicCard.vue';
 
 <template>
     
-    <div class="relative w-full min-h-screen ">
-        <!-- <div class="relative w-full">
-            <button
-                @click="scrollLeft"
-                class="
-                    absolute
-                    left-0
-                    top-1/2
-                    -translate-y-1/2
-                    z-20
-                    bg-[#33437e]
-                    hover:bg-black
-                    text-white
-                    w-10
-                    h-10
-                    rounded-full
-                    flex
-                    items-center
-                    justify-center
-                    shadow-lg
-                "
-            >
-                ‹
-            </button>
-
+    <div class="relative min-h-screen ">
+        <div class="relative w-full">
    
             <div
-                ref="scrollContainer"
+                
                 class="
                     flex
-                    flex-nowrap
+                    flex-wrap
                     gap-2
-                    overflow-x-auto
                     scroll-smooth
                     whitespace-nowrap
-                    scrollbar-hide
                     px-12
                     py-2
                     w-full
@@ -146,77 +178,22 @@ import MusicCard from '@/components/angelo/cards/MusicCard.vue';
                     Country
                 </PrimaryButton>
             </div>
-
-    
-            <button
-                @click="scrollRight"
-                class="
-                    absolute
-                    right-0
-                    top-1/2
-                    -translate-y-1/2
-                    z-20
-                    bg-[#33437e]
-                    hover:bg-black
-                    text-white
-                    w-10
-                    h-10
-                    rounded-full
-                    flex
-                    items-center
-                    justify-center
-                    shadow-lg
-                "
-            >
-                ›
-            </button>
-        </div> -->
+        </div> 
         <!-- Music List -->
-        <h1 class="text-[#e4e8f3d0] text-2xl my-2">Nouveautés</h1>
-        <!-- Je veux que ceci est un carousel avec des bouttons droite et gauche -->
-        <div class="flex flex-wrap items-center justify-start gap-2 w-full">
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/1.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/2.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/3.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/4.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/5.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/6.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/8.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/9.JPG"
-            />
-            
-        </div>
+        <h1 class="text-[#e4e8f3d0] text-2xl my-2">Nouveauté</h1>
+        <Carousel v-bind="config">
+            <Slide v-for="music in musics" :key="music.id">
+                <MusicCard
+                    :title="music.title"
+                    :artist="music.artist"
+                    :image="music.image"
+                    class="w-full"
+                />
+            </Slide>
+            <template #addons>
+            <Navigation />
+            </template>
+        </Carousel>
         <!-- Music List -->
          <h1 class="text-[#e4e8f3d0] text-2xl my-2">Populaires</h1>
         <!-- Je veux que ceci est un carousel avec des bouttons droite et gauche -->
@@ -224,80 +201,52 @@ import MusicCard from '@/components/angelo/cards/MusicCard.vue';
             <MusicCard
                 title="Aza ambelanao"
                 artist="Rim ka"
-                image="/assets/images/10.JPG"
+                image="/assets/images/18.JPG"
+                class="w-[200px]"
             />
             <MusicCard
                 title="Aza ambelanao"
                 artist="Rim ka"
-                image="/assets/images/11.JPG"
+                image="/assets/images/19.JPG"
+                class="w-[200px]"
             />
             <MusicCard
                 title="Aza ambelanao"
                 artist="Rim ka"
-                image="/assets/images/12.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/13.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/14.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/15.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/16.JPG"
+                image="/assets/images/20.JPG"
+                class="w-[200px]"
             />
         </div>
         <!-- Music List -->
          <h1 class="text-[#e4e8f3d0] text-2xl my-2">Suggestions</h1>
         <!-- Je veux que ceci est un carousel avec des bouttons droite et gauche -->
         <div class="flex flex-wrap items-center justify-start gap-2 ">
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/18.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/19.JPG"
-            />
-            <MusicCard
-                title="Aza ambelanao"
-                artist="Rim ka"
-                image="/assets/images/20.JPG"
-            />
+            
             <MusicCard
                 title="Aza ambelanao"
                 artist="Rim ka"
                 image="/assets/images/21.JPG"
+                class="w-[200px]"
             />
             <MusicCard
                 title="Aza ambelanao"
                 artist="Rim ka"
                 image="/assets/images/22.JPG"
+                class="w-[200px]"
             />
         </div>
      </div>
 </template>
 
 <style scoped>
-/* Cache scrollbar */
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
+/* Permet aux slides de prendre uniquement la largeur de leur bouton */
+.carousel {
+  --vc-nav-background: rgba(255, 255, 255, 0.7);
+  --vc-nav-border-radius: 100%;
 }
-
-.scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 </style>

@@ -15,3 +15,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__ . '/music.php';
+require __DIR__ . '/artists.php';
+require __DIR__ . '/album.php';

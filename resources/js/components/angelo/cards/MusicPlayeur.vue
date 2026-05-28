@@ -5,12 +5,9 @@
     <!-- PLAYER -->
     <div
         class="
-        bg-[#121212]/50
-        border-t
-        border-white/10
+        
 
         p-2
-
         backdrop-blur-xl
         "
     >
@@ -27,7 +24,7 @@
                     <button
                         class="
                         text-gray-400
-                        hover:text-[#ab072e]
+                        hover:text-[#fae311]
                         transition-all
                         cursor-pointer
                         "
@@ -50,7 +47,7 @@
                     </button>
                 </div>
                 <!-- Info -->
-                <div f>
+                <div>
                     <h2 class="text-white font-bold">
                         Aza ambelanao
                     </h2>
