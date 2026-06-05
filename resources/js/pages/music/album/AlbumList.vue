@@ -2,6 +2,11 @@
 import AlbumCard from '@/components/angelo/cards/AlbumCard.vue';
 import { Link } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next';
+import { defineProps, ref, defineEmits } from 'vue'
+
+const props = defineProps([
+    'albums'
+]);
 </script>
 
 <template>
@@ -14,11 +19,13 @@ import { Plus } from 'lucide-vue-next';
             <span class="text-xs text-white uppercase">Créer</span>
         </Link>
     </div>
-        <Link href="/albums/details" class="flex flex-wrap items-center justify-start gap-2">
+    <div class="w-full flex flex-wrap items-center justify-start gap-2">
+        <Link v-for="album in albums"  :key="album.id" :href="`/albums/detail/${album.slug}`">
             <AlbumCard
-                title="My first album"
-                artist="Rim ka"
-                image="/assets/images/album.JPG"
+                :title="album.title"
+                :artist="album.artist.surname"
+                :image="`/storage/${album.image}`"
             />
         </Link>
+    </div>
 </template>

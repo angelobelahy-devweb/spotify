@@ -6,7 +6,10 @@ import MusicCard from '@/components/angelo/cards/MusicCard.vue';
 
 import 'vue3-carousel/carousel.css';
 import { Carousel, Slide, Navigation, injectCarousel } from 'vue3-carousel'
-
+import { ArrowLeft, Disc3Icon, LucideAlbum, Music, Tags } from 'lucide-vue-next';
+defineProps({
+  genres: Array,
+});
 const musics = [
   {
     id: 1,
@@ -84,100 +87,20 @@ const config = {
 <template>
     
     <div class="relative min-h-screen ">
-        <div class="relative w-full">
-   
-            <div
-                
-                class="
-                    flex
-                    flex-wrap
-                    gap-2
-                    scroll-smooth
-                    whitespace-nowrap
-                    px-12
-                    py-2
-                    w-full
-                "
-            >
-                <PrimaryButton
-                    size="xs"
-                    class="flex-shrink-0"
-                >
+        <div class="relative w-[max-content]">
+            <select class="select select-[#33437e] cursor-pointer bg-[#33437e] select-sm outline-none border-none">
+                <!-- Option par défaut (Grise et discrète) -->
+                <option value="" disabled selected>
+                    Filtrer par genre
+                </option>
+                <!-- Options de la liste (Blanches et lisibles) -->
+                <option class="bg-[#33437e]/80">
                     All
-                </PrimaryButton>
-
-                <PrimaryButton
-                    size="xs"
-                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
-                    color="black"
-                >
-                    Pop
-                </PrimaryButton>
-
-                <PrimaryButton
-                    size="xs"
-                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
-                    color="black"
-                >
-                    Rap
-                </PrimaryButton>
-
-                <PrimaryButton
-                    size="xs"
-                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
-                    color="black"
-                >
-                    Rock
-                </PrimaryButton>
-
-                <PrimaryButton
-                    size="xs"
-                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
-                    color="black"
-                >
-                    Metal
-                </PrimaryButton>
-
-                <PrimaryButton
-                    size="xs"
-                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
-                    color="black"
-                >
-                    Jazz
-                </PrimaryButton>
-
-                <PrimaryButton
-                    size="xs"
-                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
-                    color="black"
-                >
-                    Blues
-                </PrimaryButton>
-
-                <PrimaryButton
-                    size="xs"
-                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
-                    color="black"
-                >
-                    Musique Classique
-                </PrimaryButton>
-
-                <PrimaryButton
-                    size="xs"
-                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
-                    color="black"
-                >
-                    Dancehall
-                </PrimaryButton>
-
-                <PrimaryButton
-                    size="xs"
-                    class="bg-[#c8cac9] hover:text-white flex-shrink-0"
-                    color="black"
-                >
-                    Country
-                </PrimaryButton>
-            </div>
+                </option>
+                <option v-for="genre in genres" :key="genre.id" :value="genre.id" class="bg-[#33437e]/80 text-zinc-100 font-sans text-sm tracking-wide antialiased">
+                    {{ genre.name }}
+                </option>
+            </select>
         </div> 
         <!-- Music List -->
         <h1 class="text-[#e4e8f3d0] text-2xl my-2">Nouveauté</h1>

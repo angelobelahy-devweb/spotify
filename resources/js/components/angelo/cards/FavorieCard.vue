@@ -13,8 +13,9 @@ defineProps({
 <template>
     <Link href=""
         class="
-        bg-[#212121]
-        hover:bg-[#212121d0]
+        bg-[#33437e]/20
+    border-2 border-[#33437e]
+        hover:scale-[1.01]
         transition
         p-2
         rounded-sm

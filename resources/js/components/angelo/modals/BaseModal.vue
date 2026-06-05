@@ -15,7 +15,8 @@ const emits = defineEmits(['close-modal'])
         class="
         fixed
         inset-0
-        bg-black/70
+        bg-black/90
+        backdrop-blur-md
         flex
         items-center
         justify-center
@@ -25,7 +26,7 @@ const emits = defineEmits(['close-modal'])
 
         <div
             class="
-            bg-[#181818]
+            backdrop-blur-md bg-[#121212]/40
             p-6
             rounded-2xl
             w-[400px]

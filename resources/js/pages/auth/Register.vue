@@ -19,106 +19,105 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Register" />
-
-    <Form
-        v-bind="store.form()"
-        :reset-on-success="['password', 'password_confirmation']"
-        v-slot="{ errors, processing }"
-        class="flex flex-col gap-6"
-    >
-        <div class="grid gap-6">
-            <div class="grid gap-2">
-                <Label for="name">Nom</Label>
-                <Input
-                    id="name"
-                    type="text"
-                    required
-                    autofocus
-                    :tabindex="1"
-                    autocomplete="name"
-                    name="name"
-                    placeholder="Nom"
-                />
-                <InputError :message="errors.name" />
+        <Head title="Register" />
+        <Form
+            v-bind="store.form()"
+            :reset-on-success="['password', 'password_confirmation']"
+            v-slot="{ errors, processing }"
+            class="flex flex-col gap-2 p-2 w-full md:w-[600px] items-center rounded-md"
+        >
+            <div class="grid gap-6 justify-center items-center">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:w-[600px] w-[300px]">
+                    <div class="grid gap-2">
+                        <Label for="name">Nom</Label>
+                        <Input
+                            id="name"
+                            type="text"
+                            required
+                            :tabindex="1"
+                            autocomplete="name"
+                            name="name"
+                            placeholder="Nom"
+                           
+                        />
+                        <InputError :message="errors.name" />
+                    </div>
+                    <div class="grid gap-2">
+                        <Label for="email">Adresse e-mail</Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            required
+                            :tabindex="2"
+                            autocomplete="email"
+                            name="email"
+                            placeholder="email@example.com"
+                        />
+                        <InputError :message="errors.email" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div class="grid gap-2">
+                        <Label for="password">Mot de passe</Label>
+                        <PasswordInput
+                            id="password"
+                            required
+                            :tabindex="3"
+                            autocomplete="new-password"
+                            name="password"
+                            placeholder="Mot de passe"
+                        />
+                        <InputError :message="errors.password" />
+                    </div>
+                    <div class="grid gap-2">
+                        <Label for="password_confirmation">Confirmer le mot de passe</Label>
+                        <PasswordInput
+                            id="password_confirmation"
+                            required
+                            :tabindex="4"
+                            autocomplete="new-password"
+                            name="password_confirmation"
+                            placeholder="Confirmer le mot de passe"
+                        />
+                        <InputError :message="errors.password_confirmation" />
+                    </div>
+                </div>
+                <Button
+                    type="submit"
+                    class="mt-2 w-[max-content] 
+                    bg-[#33437e]
+                    hover:bg-[#364a92]
+                    active:scale-95
+                    transition-all
+                    duration-300
+                    px-6
+                    py-2
+                    rounded-full
+                    text-sm
+                    font-bold
+                    flex
+                    items-center
+                    justify-center
+                    gap-2
+                    cursor-pointer
+                    disabled:opacity-50 text-white"
+                    tabindex="5"
+                    :disabled="processing"
+                    data-test="register-user-button"
+                >
+                    <Spinner v-if="processing" />
+                    Créer le compte
+                </Button>
             </div>
 
-            <div class="grid gap-2">
-                <Label for="email">Adresse e-mail</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    required
-                    :tabindex="2"
-                    autocomplete="email"
-                    name="email"
-                    placeholder="email@example.com"
-                />
-                <InputError :message="errors.email" />
+            <div class="text-center text-sm text-muted-foreground">
+                Vous avez déjà un compte ?
+                <TextLink
+                    :href="login()"
+                    class="underline underline-offset-4 text-white"
+                    :tabindex="6"
+                    >Connectez-vous</TextLink
+                >
             </div>
-
-            <div class="grid gap-2">
-                <Label for="password">Mot de passe</Label>
-                <PasswordInput
-                    id="password"
-                    required
-                    :tabindex="3"
-                    autocomplete="new-password"
-                    name="password"
-                    placeholder="Mot de passe"
-                />
-                <InputError :message="errors.password" />
-            </div>
-
-            <div class="grid gap-2">
-                <Label for="password_confirmation">Confirmer le mot de passe</Label>
-                <PasswordInput
-                    id="password_confirmation"
-                    required
-                    :tabindex="4"
-                    autocomplete="new-password"
-                    name="password_confirmation"
-                    placeholder="Confirmer le mot de passe"
-                />
-                <InputError :message="errors.password_confirmation" />
-            </div>
-
-            <Button
-                type="submit"
-                class="mt-2 w-full 
-                bg-[#33437e]
-                hover:bg-[#364a92]
-                active:scale-95
-                transition-all
-                duration-300
-                px-6
-                py-2
-                rounded-full
-                text-sm
-                font-bold
-                flex
-                items-center
-                justify-center
-                gap-2
-                cursor-pointer
-                disabled:opacity-50 text-white"
-                tabindex="5"
-                :disabled="processing"
-                data-test="register-user-button"
-            >
-                <Spinner v-if="processing" />
-                Créer le compte
-            </Button>
-        </div>
-
-        <div class="text-center text-sm text-muted-foreground">
-            Vous avez déjà un compte ?
-            <TextLink
-                :href="login()"
-                class="underline underline-offset-4 text-white"
-                :tabindex="6"
-                >Connectez-vous</TextLink
-            >
-        </div>
-    </Form>
+        </Form>
 </template>

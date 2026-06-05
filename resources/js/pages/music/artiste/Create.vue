@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { useForm, Link } from '@inertiajs/vue3'
+import { useForm, Link, usePage } from '@inertiajs/vue3'
 import { ArrowLeft, Image, User } from 'lucide-vue-next'
-
+import { Spinner } from '@/components/ui/spinner';
+import { useToast } from 'primevue/usetoast';
+import Toast from 'primevue/toast'; // Importation du composant Toast de PrimeVue
+// Initialisation du Toast de PrimeVue
+const toast = useToast();
 const form = useForm({
     surname: '',
     description: '',
@@ -28,6 +32,31 @@ const handleImage = (e: Event) => {
 const submit = () => {
     form.post('/artistes/store', {
         forceFormData: true,
+        onSuccess: () => {
+            // 1. On récupère le message flash envoyé par le contrôleur Laravel
+            const successMessage = usePage().props.flash?.success;
+            
+            // 2. Syntaxe PrimeVue pour afficher un toast de succès
+            toast.add({ 
+                severity: 'success', 
+                summary: 'Succès', 
+                detail: successMessage || 'L\'artiste a été créé avec succès !', 
+                life: 3000 
+            });
+
+            // 3. Réinitialisation complète du formulaire et de l'aperçu de la photo
+            form.reset();
+            preview.image = '';
+        },
+        onError: () => {
+            // Syntaxe PrimeVue pour afficher un toast d'erreur
+            toast.add({ 
+                severity: 'error', 
+                summary: 'Erreur', 
+                detail: 'Veuillez corriger les erreurs du formulaire.', 
+                life: 3000 
+            });
+        }
     })
 }
 </script>
@@ -35,11 +64,18 @@ const submit = () => {
 <template>
     <div class=" text-white flex justify-center">
 
+        
         <!-- FORM -->
         <form
             @submit.prevent="submit"
-            class="w-[500px] bg-[#181818]/80  p-8 rounded-lg  shadow-2xl  space-y-2 h-[max-content]"
+            class="border border-[#33437e] backdrop-blur-md bg-black/40 w-[500px]   p-8 rounded-lg  shadow-2xl  space-y-2 h-[max-content]"
         >
+            <div class="w-full flex items-center justify-between mb-6">
+                <Link href="/artistes" class="text-gray-400 hover:text-white flex items-center gap-1 text-sm">
+                    <ArrowLeft class="w-4 h-4" /> Retour
+                </Link>
+                <h1 class="text-xl font-bold">Dévenir un artiste</h1>
+            </div>
             <!-- IMAGE -->
             <div class="flex flex-col items-center gap-4">
 
@@ -48,9 +84,8 @@ const submit = () => {
                         relative
                         w-30
                         h-30
-                        rounded-full
+                        rounded-xl
                         overflow-hidden
-                        bg-[#232323]
                         cursor-pointer
                         group
                         border-2
@@ -95,6 +130,7 @@ const submit = () => {
                         class="hidden"
                         accept="image/*"
                         @change="handleImage"
+                        @input="form.image = $event.target.files[0]"
                         
                     />
                 </label>
@@ -165,11 +201,10 @@ const submit = () => {
                 class="bg-[#33437e] hover:bg-[#364a92] active:scale-95 transition-all duration-300 px-6 py-2 rounded-full text-sm font-bold flex items-center justify-center gap-2 w-max cursor-pointer disabled:opacity-50
                 "
             >
-                {{
-                    form.processing
-                        ? 'Création...'
-                        : 'Créer l’artiste'
-                }}
+                <span v-if="form.processing" class="flex gap-2">
+                    <spinner /> Création
+                </span>
+                <span v-else>Créer artiste</span>
             </button>
         </form>
     </div>

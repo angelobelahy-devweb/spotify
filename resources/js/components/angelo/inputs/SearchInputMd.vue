@@ -13,21 +13,9 @@ import { Search } from 'lucide-vue-next'
         rounded-full
         px-2
         py-2
+        cursor-pointer
         "
     >
         <Search class="w-5 h-5 text-gray-400" />
-
-        <input
-            type="text"
-            placeholder="Que souhaitez-vous écouter ?"
-            class="
-            bg-transparent
-            outline-none
-            text-white
-            text-xs
-            ml-3
-            w-[160px]
-            "
-        />
     </div>
 </template>

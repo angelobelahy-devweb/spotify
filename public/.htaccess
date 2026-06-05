@@ -22,4 +22,22 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+
+    
 </IfModule>
+
+# Mettre à la suite de votre code existant :
+
+# Autorise les fichiers jusqu'à 100 Mo sur Apache
+LimitRequestBody 104857600
+
+# Force les limites PHP au cas où le php.ini échoue
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 100M
+    php_value post_max_size 100M
+</IfModule>
+<IfModule mod_php.c>
+    php_value upload_max_filesize 100M
+    php_value post_max_size 100M
+</IfModule>
+

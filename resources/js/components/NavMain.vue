@@ -31,6 +31,7 @@ const { isCurrentUrl } = useCurrentUrl();
                         <component :is="item.icon" />
                         <span>{{ item.title }}</span>
                     </Link>
+                    
                 </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>

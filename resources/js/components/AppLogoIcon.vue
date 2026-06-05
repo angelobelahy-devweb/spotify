@@ -14,5 +14,5 @@ defineProps<Props>();
 </script>
 
 <template>
-    <img :src="logo" alt="Logo" v-bind="$attrs" class="h-auto w-40 object-contain mx-auto" />
+    <img :src="logo" alt="Logo" v-bind="$attrs" class="h-auto w-20 object-contain mx-auto" />
 </template>
