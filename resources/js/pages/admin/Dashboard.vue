@@ -53,7 +53,11 @@ const stats = [
       </h1>
 
       <p class="text-gray-400 mt-2">
+<<<<<<< HEAD
         Gérez votre plateforme
+=======
+        Gérez votre plateforme 
+>>>>>>> ed03808 (initialize AdminLayout)
       </p>
     </div>
 
@@ -140,7 +144,11 @@ const stats = [
                 </h3>
 
                 <p class="text-gray-400 text-sm">
+<<<<<<< HEAD
                   Artiste
+=======
+                  Artiste 
+>>>>>>> ed03808 (initialize AdminLayout)
                 </p>
               </div>
             </div>
@@ -187,4 +195,8 @@ const stats = [
       </div>
     </div>
   <!--</AdminLayout>-->
+<<<<<<< HEAD
 </template>
+=======
+</template>
+>>>>>>> ed03808 (initialize AdminLayout)
