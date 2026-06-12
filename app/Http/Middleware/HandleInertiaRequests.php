@@ -41,6 +41,29 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'favorites' => function () use ($request) {
+                if (! $request->user()) {
+                    return [];
+                }
+
+                return $request->user()
+                    ->favorites()
+                    ->with(['track.album.artist'])
+                    ->get()
+                    ->map(function ($favorite) {
+                        $track = $favorite->track;
+
+                        return [
+                            'id' => $track->id,
+                            'title' => $track->title,
+                            'artist' => $track->album?->artist?->surname ?? 'Artiste inconnu',
+                            'file_path' => $track->file_path,
+                            'duration' => $track->duration,
+                            'image' => $track->album?->image ?? '/assets/images/album.JPG',
+                        ];
+                    })
+                    ->toArray();
+            },
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

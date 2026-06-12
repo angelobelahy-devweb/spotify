@@ -1,12 +1,58 @@
 <script setup>
-    import { ChevronFirst, ChevronLast } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { ChevronFirst, ChevronLast, HeartIcon, Play, Pause, Volume2 } from 'lucide-vue-next';
+import { playerStore } from '@/lib/playerStore';
+
+const currentTrack = computed(() => playerStore.currentTrack);
+const isPlaying = computed(() => playerStore.isPlaying);
+const progress = computed(() => playerStore.progress || 0);
+const currentTime = computed(() => playerStore.currentTime || 0);
+const duration = computed(() => playerStore.duration || 0);
+const volume = computed(() => playerStore.volume);
+const isFavorite = computed(() => playerStore.isFavorite(currentTrack.value));
+const canPrev = computed(() => playerStore.canPrev());
+const canNext = computed(() => playerStore.canNext());
+
+const formatTime = (time) => {
+    if (!time || isNaN(time)) return '0:00';
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+};
+
+const togglePlayback = () => {
+    playerStore.toggle();
+};
+
+const playPrev = () => {
+    playerStore.prev();
+};
+
+const playNext = () => {
+    playerStore.next();
+};
+
+const updateProgress = (event) => {
+    const value = Number(event.target.value);
+    playerStore.seek(value * duration.value);
+};
+
+const updateVolume = (event) => {
+    const value = Number(event.target.value);
+    playerStore.setVolume(value);
+};
+
+const toggleFavorite = () => {
+    if (currentTrack.value) {
+        playerStore.toggleFavorite(currentTrack.value);
+    }
+};
 </script>
 <template>
-    <!-- PLAYER -->
-    <div
-        class="
-        
+    <div class="p-4 bg-[#121212]/95 rounded-2xl shadow-2xl text-white w-full">
+        <div class="flex flex-col gap-6">
 
+<<<<<<< HEAD
         p-2
         
         "
@@ -19,173 +65,91 @@
                 <div class="w-full flex justify-between gap-2">
                     <div class="w-30 h-30 overflow-hidden rounded-full shadow-lg flex justify-center">
                         <img src="/assets/images/album.JPG" class="w-full h-full object-cover"/>
+=======
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-4 min-w-0">
+                    <div class="w-24 h-24 rounded-full overflow-hidden shadow-lg bg-slate-900">
+                        <img
+                            :src="currentTrack?.image || '/assets/images/album.JPG'"
+                            class="w-full h-full object-cover"
+                            alt="Cover"
+                        />
+>>>>>>> develop
                     </div>
-                    <!-- Heart -->
-                    <button
-                        class="
-                        text-gray-400
-                        hover:text-[#fae311]
-                        transition-all
-                        cursor-pointer
-                        "
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                            class="w-5 h-5"
-                        >
-                            <path
-                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
-                                2 5.42 4.42 3 7.5 3c1.74 0 3.41.81
-                                4.5 2.09C13.09 3.81 14.76 3
-                                16.5 3 19.58 3 22 5.42
-                                22 8.5c0 3.78-3.4 6.86-8.55
-                                11.54L12 21.35z"
-                            />
-                        </svg>
-                    </button>
-                </div>
-                <!-- Info -->
-                <div>
-                    <h2 class="text-white font-bold">
-                        Aza ambelanao
-                    </h2>
-
-                    <p class="text-gray-400 text-sm">
-                        Rim ka
-                    </p>
-                </div>
-
-            </div>
-
-            <!-- CENTER -->
-            <div class="flex flex-col items-center w-full">
-
-                <!-- Controls -->
-                <div class="flex items-center gap-5">
-
-                    <!-- Previous -->
-                    <button
-                        class="
-                        text-white
-                        hover:scale-110
-                        transition-all
-                        cursor-pointer
-                        "
-                    >
-                        <ChevronFirst  class="w-5 h-5 text-gray-400"/>
-                    </button>
-
-                    <!-- Pause -->
-                    <button
-                        class="
-                        bg-[#33437e]
-                        p-3
-                        rounded-full
-                        fill-white
-                        hover:scale-110
-                        active:scale-95
-                        transition-all
-                        cursor-pointer
-                        "
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="black"
-                            viewBox="0 0 24 24"
-                            class="w-6 h-6"
-                        >
-                            <path
-                                d="M6 5h4v14H6zm8 0h4v14h-4z"
-                            />
-                        </svg>
-                    </button>
-
-                    <!-- Next -->
-                    <button
-                        class="
-                        text-white
-                        hover:scale-110
-                        transition-all
-                        cursor-pointer
-                        "
-                    >
-                        <ChevronLast  class="w-5 h-5 text-gray-400"/>
-                    </button>
-
-                </div>
-
-                <!-- Progress -->
-                <div class="flex items-center gap-3 w-full mt-3">
-
-                    <span class="text-xs text-gray-400">
-                        1:24
-                    </span>
-
-                    <div
-                        class="
-                        w-full
-                        h-1
-                        bg-gray-700
-                        rounded-full
-                        overflow-hidden
-                        "
-                    >
-                        <div
-                            class="
-                            w-[100%]
-                            h-full
-                            bg-white
-                            rounded-full
-                            "
-                        ></div>
+                    <div class="min-w-0">
+                        <p class="text-xs uppercase text-gray-400">{{ currentTrack ? 'En cours' : 'Aucun titre' }}</p>
+                        <h2 class="text-xl font-bold truncate">{{ currentTrack?.title ?? 'Pas de lecture' }}</h2>
+                        <p class="text-sm text-gray-400 truncate">{{ currentTrack?.artist ?? '...' }}</p>
                     </div>
-
-                    <span class="text-xs text-gray-400">
-                        3:45
-                    </span>
-
                 </div>
 
-            </div>
-
-            <!-- RIGHT -->
-            <div class="flex items-center gap-3">
-
-                <!-- Volume -->
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                    class="w-5 h-5 text-white"
+                <button
+                    type="button"
+                    @click="toggleFavorite"
+                    class="text-gray-400 hover:text-[#fae311] transition-colors"
+                    :disabled="!currentTrack"
                 >
-                    <path
-                        d="M3 10v4h4l5 5V5L7 10H3zm13.5
-                        2c0-1.77-1-3.29-2.5-4.03v8.05
-                        c1.5-.73 2.5-2.25 2.5-4.02z"
+                    <HeartIcon
+                        :class="[
+                            'w-6 h-6',
+                            isFavorite ? 'fill-[#fae311] text-[#fae311]' : 'fill-none text-gray-400'
+                        ]"
                     />
-                </svg>
+                </button>
+            </div>
 
-                <!-- Volume bar -->
-                <div
-                    class="
-                    w-24
-                    h-1
-                    bg-gray-700
-                    rounded-full
-                    overflow-hidden
-                    "
+            <div class="flex items-center justify-center gap-6">
+                <button
+                    type="button"
+                    @click="playPrev"
+                    :disabled="!canPrev"
+                    class="text-white hover:scale-110 transition-transform disabled:opacity-40 disabled:cursor-default"
                 >
-                    <div
-                        class="
-                        w-[70%]
-                        h-full
-                        bg-white
-                        "
-                    ></div>
-                </div>
+                    <ChevronFirst class="w-6 h-6" />
+                </button>
+                <button
+                    type="button"
+                    @click="togglePlayback"
+                    class="bg-[#33437e] p-4 rounded-full hover:scale-110 transition-transform disabled:opacity-40"
+                    :disabled="!currentTrack"
+                >
+                    <component :is="isPlaying ? Pause : Play" class="w-6 h-6" />
+                </button>
+                <button
+                    type="button"
+                    @click="playNext"
+                    :disabled="!canNext"
+                    class="text-white hover:scale-110 transition-transform disabled:opacity-40 disabled:cursor-default"
+                >
+                    <ChevronLast class="w-6 h-6" />
+                </button>
+            </div>
 
+            <div class="flex items-center gap-3 text-xs text-gray-400">
+                <span>{{ formatTime(currentTime) }}</span>
+                <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.001"
+                    :value="progress"
+                    @input="updateProgress"
+                    class="flex-1 accent-white"
+                />
+                <span>{{ formatTime(duration) }}</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <Volume2 class="w-5 h-5 text-white" />
+                <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    :value="volume"
+                    @input="updateVolume"
+                    class="flex-1 accent-white"
+                />
             </div>
 
         </div>

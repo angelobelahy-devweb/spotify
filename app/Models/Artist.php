@@ -9,7 +9,7 @@ class Artist extends Model
     protected $fillable = [
         'surname',
         'user_id',
-        'description'
+        'description',
     ];
 
     public function user()

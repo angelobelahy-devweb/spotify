@@ -1,22 +1,126 @@
 <script setup>
+<<<<<<< HEAD
 import { Play, HeartIcon } from 'lucide-vue-next';
 
 defineProps({
+=======
+import { computed } from 'vue';
+import { Play, Pause, HeartIcon } from 'lucide-vue-next';
+import { usePage } from '@inertiajs/vue3';
+import { playerStore } from '@/lib/playerStore';
+import { openAuthModal } from '@/lib/authModalStore';
+
+const props = defineProps({
+    id: [String, Number],
+>>>>>>> develop
     index: Number,
     title: String,
     duration: String,
     image: String,
     artist: String,
+<<<<<<< HEAD
     file_path: String // AJOUT : chemin du morceau
 })
 
 // Déclaration de l'événement vers le composant parent
 const emit = defineEmits(['playTrack']);
+=======
+    file_path: String
+})
+
+const emit = defineEmits(['play-track']);
+const page = usePage();
+const isLoggedIn = computed(() => Boolean(page.props.auth.user));
+
+const trackData = {
+    id: props.id,
+    title: props.title,
+    artist: props.artist,
+    image: props.image,
+    file_path: props.file_path,
+};
+
+const isCurrentTrackPlaying = computed(() => playerStore.currentTrack?.file_path === props.file_path && playerStore.isPlaying);
+const isFavorite = computed(() => playerStore.isFavorite(trackData));
+
+const getCsrfTokenFromCookie = () => {
+    const match = document.cookie.match(/(^|;)\s*XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[2]) : null;
+};
+
+const updateLocalFavorite = (favoriteTrack, added) => {
+    const key = favoriteTrack?.id ?? favoriteTrack?.file_path ?? favoriteTrack?.title;
+    const existingIndex = playerStore.favorites.findIndex((item) => (item?.id ?? item?.file_path ?? item?.title) === key);
+
+    if (added) {
+        if (existingIndex === -1) {
+            playerStore.favorites.push(favoriteTrack);
+        }
+    } else if (existingIndex >= 0) {
+        playerStore.favorites.splice(existingIndex, 1);
+    }
+};
+
+const toggleFavorite = async (event) => {
+    event.stopPropagation();
+
+    if (!isLoggedIn.value) {
+        openAuthModal('Veuillez vous connecter pour ajouter ce morceau à vos favoris.');
+        return;
+    }
+
+    if (!props.id) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/favorites/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': getCsrfTokenFromCookie() ?? '',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ track_id: props.id })
+        });
+
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 419 || response.redirected) {
+                openAuthModal('Veuillez vous connecter pour ajouter ce morceau à vos favoris.');
+                return;
+            }
+            console.error('Toggle favorite failed', response.status, await response.text());
+            return;
+        }
+
+        const data = await response.json();
+        updateLocalFavorite(data.track, data.favorite);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const handlePlayTrack = (event) => {
+    event.stopPropagation();
+
+    if (!isLoggedIn.value) {
+        openAuthModal('Veuillez vous connecter pour lancer la musique.');
+        return;
+    }
+
+    emit('playTrack');
+};
+>>>>>>> develop
 </script>
 
 <template>
     <div
+<<<<<<< HEAD
         @click="emit('playTrack')"
+=======
+        @click="handlePlayTrack"
+>>>>>>> develop
         class="
         grid
         grid-cols-[40px_1fr_auto]
@@ -35,8 +139,11 @@ const emit = defineEmits(['playTrack']);
         <div class="text-4xl font-thin opacity-30 tabular-nums">
             {{ index }}
         </div>
+<<<<<<< HEAD
 
         
+=======
+>>>>>>> develop
 
         <!-- SONG -->
         <div class="flex items-center gap-4">
@@ -51,6 +158,11 @@ const emit = defineEmits(['playTrack']);
             </div>
             <!-- Heart -->
             <button
+<<<<<<< HEAD
+=======
+                type="button"
+                @click.stop="toggleFavorite"
+>>>>>>> develop
                 class="
                 hover:text-gray-400
                 text-[#fae311]
@@ -58,7 +170,15 @@ const emit = defineEmits(['playTrack']);
                 cursor-pointer
                 "
             >
+<<<<<<< HEAD
                 <HeartIcon class="hover:fill-gray-400 hover:text-gray-400 text-[#fae311] fill-[#fae311] w-5 h-5" />
+=======
+                <HeartIcon :class="[
+                        'w-5 h-5',
+                        isFavorite ? 'fill-[#fae311] text-[#fae311]' : 'fill-[#fae311] text-[#fae311]'
+                    ]"
+                />
+>>>>>>> develop
             </button>
         </div>
 
@@ -69,6 +189,11 @@ const emit = defineEmits(['playTrack']);
             </span>
             <!-- PLAY -->
             <button
+<<<<<<< HEAD
+=======
+                type="button"
+                @click.stop="handlePlayTrack"
+>>>>>>> develop
                 class="
                 bg-[#33437e]
                 p-2
@@ -80,7 +205,11 @@ const emit = defineEmits(['playTrack']);
                 w-[max-content]
                 "
             >
+<<<<<<< HEAD
                 <Play class="text-white fill-white w-4 h-4" />
+=======
+                <component :is="isCurrentTrackPlaying ? Pause : Play" class="text-white fill-white w-4 h-4" />
+>>>>>>> develop
             </button>
         </div>
         

@@ -54,6 +54,13 @@
         "vue": "^3.5.13",
         "vue-input-otp": "^0.3.2",
         "vue-sonner": "^2.0.0",
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+        "vue-sweetalert2": "^5.0.11",
+=======
+>>>>>>> ed03808 (initialize AdminLayout)
+>>>>>>> develop
         "vue-toastification": "^2.0.0-rc.5",
         "vue3-carousel": "^0.17.0"
     },

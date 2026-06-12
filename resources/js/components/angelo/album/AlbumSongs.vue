@@ -1,10 +1,23 @@
 <script setup>
+<<<<<<< HEAD
 import SongItem from './SongItem.vue'
 import { playerStore } from '@/lib/playerStore'; // AJOUT : Import du store global
 
 defineProps({
     songs: Array
 })
+=======
+import SongItem from './SongItem.vue';
+import { playerStore } from '@/lib/playerStore';
+
+const props = defineProps({
+    songs: Array
+})
+
+const handlePlayTrack = (song) => {
+    playerStore.play(song, props.songs);
+};
+>>>>>>> develop
 </script>
 
 <template>
@@ -37,7 +50,11 @@ defineProps({
             :duration="song.duration"
             :image="song.image"
             :file_path="song.file_path"
+<<<<<<< HEAD
             @play-track="playerStore.play(song)"
+=======
+            @play-track="handlePlayTrack(song)"
+>>>>>>> develop
         />
     </div>
 </template>

@@ -31,6 +31,23 @@ class MusicController extends Controller
         ]);
     }
     public function favorie() {
-        return Inertia::render("music/Favorie");
+        $favorites = auth()->user()->favorites()
+            ->with(['track.album.artist'])
+            ->get()
+            ->map(function ($favorite) {
+                $track = $favorite->track;
+                return [
+                    'id' => $track?->id,
+                    'title' => $track?->title,
+                    'artist' => $track?->album?->artist?->surname ?? 'Artiste inconnu',
+                    'duration' => $track?->duration,
+                    'file_path' => $track?->file_path,
+                    'image' => $track?->album?->image ? "/storage/{$track->album->image}" : '/assets/images/album.JPG',
+                ];
+            });
+
+        return Inertia::render("music/Favorie", [
+            'favorites' => $favorites,
+        ]);
     }
 }

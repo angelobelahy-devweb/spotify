@@ -25,7 +25,15 @@ const menus = [
   {
     name: 'Dashboard',
     icon: LayoutDashboard,
+<<<<<<< HEAD
     route: '/admin',
+=======
+<<<<<<< HEAD
+    route: '/admin/dashboard',
+=======
+    route: '/admin',
+>>>>>>> ed03808 (initialize AdminLayout)
+>>>>>>> develop
   },
   {
     name: 'Utilisateurs',
@@ -67,11 +75,20 @@ const menus = [
     icon: Heart,
     route: '/admin/favorites',
   },
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> develop
   {
     name: 'Statistiques',
     icon: BarChart3,
     route: '/admin/statistics',
   },
+<<<<<<< HEAD
+=======
+>>>>>>> ed03808 (initialize AdminLayout)
+>>>>>>> develop
 ]
 </script>
 
@@ -110,7 +127,15 @@ const menus = [
             ADMIN PANEL
           </p>
         </div>
+<<<<<<< HEAD
         
+=======
+<<<<<<< HEAD
+
+=======
+        
+>>>>>>> ed03808 (initialize AdminLayout)
+>>>>>>> develop
 
         <button
           @click="sidebarOpen = false"
@@ -234,4 +259,12 @@ const menus = [
       </main>
     </div>
   </div>
+<<<<<<< HEAD
 </template>
+=======
+<<<<<<< HEAD
+</template>
+=======
+</template>
+>>>>>>> ed03808 (initialize AdminLayout)
+>>>>>>> develop
