@@ -11,8 +11,9 @@ defineProps({
 <template>
     <div
     class="
-    bg-[#212121]
-    hover:bg-[#212121d0]
+    bg-[#33437e]/20
+    border border-[#33437e]
+    backdrop-blur-xl
     transition
     p-2
     rounded-xs

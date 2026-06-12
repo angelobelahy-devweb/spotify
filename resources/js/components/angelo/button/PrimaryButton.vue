@@ -36,9 +36,8 @@ const colorClasses = computed(() => {
             return 'text-white';
         case 'black':
             return 'text-black';
-        case 'red':
-            return 'text-red-800';
-
+        case 'blue':
+            return 'text-[#364a92]';
         default:
             return 'text-white';
     }

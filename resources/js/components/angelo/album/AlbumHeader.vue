@@ -24,9 +24,9 @@ defineProps({
         items-center
         md:items-end
 
-        bg-gradient-to-b
+        bg-gradient-to-r
         from-[#33437e]/30
-        to-[#12121296]
+        to-transparent
 
         p-6
         rounded-xl

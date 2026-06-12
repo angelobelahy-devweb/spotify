@@ -1,7 +1,12 @@
-<script setup lang="ts">
+<script setup>
 import ArtisteCard from '@/components/angelo/cards/ArtisteCard.vue';
 import { Link } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next';
+import { defineProps, ref, defineEmits } from 'vue'
+
+const props = defineProps([
+    'artists'
+]);
 </script>
 
 <template>
@@ -14,19 +19,13 @@ import { Plus } from 'lucide-vue-next';
             <span class="text-xs text-white uppercase">Créer</span>
         </Link>
     </div>
-        <div class="flex flex-wrap items-center justify-start gap-2 ">
-            <ArtisteCard
-                artist="King Boy"
-                image="/assets/images/user.jpg"
-            />
-            <ArtisteCard
-                artist="Boy Black"
-                image="/assets/images/user1.jpg"
-            />
-            <ArtisteCard
-                artist="Basta Lion"
-                image="/assets/images/user2.jpg"
-            />
-
+        <div class="flex flex-wrap items-center justify-start gap-2">
+            <div v-for="artist in artists"  :key="artist.id">
+                    <ArtisteCard 
+                        :slug="artist.user.slug"
+                        :artist="artist.surname"
+                        :image="`/storage/${artist.user.pdp}`"
+                    />
+            </div>
         </div>
 </template>

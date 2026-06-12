@@ -7,10 +7,12 @@ import { Search } from 'lucide-vue-next'
         class="
         flex
         items-center
-        bg-[#242424]
+        bg-black/20
+        border border-[#33437e]
+        backdrop-blur-xl
         rounded-full
-        px-4
-        py-3
+        px-2
+        py-2
         "
     >
         <Search class="w-5 h-5 text-gray-400" />
@@ -24,7 +26,7 @@ import { Search } from 'lucide-vue-next'
             text-white
             text-xs
             ml-3
-            w-full
+            w-[160px]
             "
         />
     </div>

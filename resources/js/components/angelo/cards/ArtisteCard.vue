@@ -3,13 +3,15 @@ import { Link } from '@inertiajs/vue3'
 
 
 defineProps({
+    slug: [String, Number],
     artist: String,
     image: String
 })
+
 </script>
 
 <template>
-    <Link href=""
+    <Link :href="`/artist/profil/${slug}`"
         class="
         hover:bg-[#33437e]/40
         transition

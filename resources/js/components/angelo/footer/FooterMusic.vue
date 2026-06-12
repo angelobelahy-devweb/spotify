@@ -7,7 +7,7 @@ const currentYear = new Date().getFullYear();
 </script>
 
 <template>
-  <footer class="bg-gradient-to-r from-neutral to-neutral/10 text-neutral-content p-10 font-sans rounded-tr-[2rem]">
+  <footer class="backdrop-blur-md bg-gradient-to-r from-neutral to-neutral/10 text-neutral-content p-10 font-sans rounded-tr-[2rem]">
 
     <!-- Section principale avec Grille -->
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-8 mb-10">
