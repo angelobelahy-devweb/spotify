@@ -2,8 +2,8 @@
 
 <script setup lang="ts">
 import Toast from 'primevue/toast';
-import { ref } from 'vue'
-import { Head, Link } from '@inertiajs/vue3'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { Head, Link, usePage } from '@inertiajs/vue3'
 import logo from '@/assets/images/logo.png'
 
 
@@ -36,6 +36,7 @@ import {
 import MusicPlay from '@/components/angelo/cards/MusicPlay.vue';
 import BaseModal from '@/components/angelo/modals/BaseModal.vue';
 import FooterMusic from '@/components/angelo/footer/FooterMusic.vue';
+import { authModalStore } from '@/lib/authModalStore';
 import { dashboard, login, register } from '@/routes'
 
 
@@ -361,6 +362,27 @@ const sidebarOpen = ref(true)
   </div>
   <BaseModal v-if="isOpenModal" @close-modal="closeModal">
       <MusicPlayeur/>
+  </BaseModal>
+
+  <BaseModal v-if="authModalStore.open" @close-modal="authModalStore.open = false">
+      <div class="text-white">
+          <h2 class="text-2xl font-semibold mb-3">Connexion requise</h2>
+          <p class="text-gray-300 leading-relaxed">{{ authModalStore.message }}</p>
+          <div class="mt-6 flex justify-end gap-2">
+              <button
+                  @click="authModalStore.open = false"
+                  class="px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10"
+              >
+                  Annuler
+              </button>
+              <Link
+                  href="/login"
+                  class="px-4 py-2 rounded-lg bg-[#33437e] text-white hover:bg-[#2a3560]"
+              >
+                  Se connecter
+              </Link>
+          </div>
+      </div>
   </BaseModal>
 
 </template>

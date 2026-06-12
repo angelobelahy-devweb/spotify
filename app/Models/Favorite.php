@@ -6,13 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Favorite extends Model
 {
-    public $timestamps = false;
-
     protected $fillable = [
         'track_id',
         'user_id',
         'artist_id',
-        'created_at'
     ];
 
     public function user()

@@ -15,7 +15,7 @@ import Aura from '@primeuix/themes/aura';
 import 'primeicons/primeicons.css';
 import '../css/app.css'; // Décommentez si nécessaire pour vos styles globaux
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'My Life';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
