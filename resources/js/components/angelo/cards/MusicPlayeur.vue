@@ -52,20 +52,7 @@ const toggleFavorite = () => {
     <div class="p-4 bg-[#121212]/95 rounded-2xl shadow-2xl text-white w-full">
         <div class="flex flex-col gap-6">
 
-<<<<<<< HEAD
-        p-2
-        
-        "
-    >
-        <div class="flex flex-col items-center justify-center">
 
-            <!-- LEFT -->
-            <div class="w-full flex flex-col items-center gap-4 mb-2">
-                <!-- Cover -->
-                <div class="w-full flex justify-between gap-2">
-                    <div class="w-30 h-30 overflow-hidden rounded-full shadow-lg flex justify-center">
-                        <img src="/assets/images/album.JPG" class="w-full h-full object-cover"/>
-=======
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-24 h-24 rounded-full overflow-hidden shadow-lg bg-slate-900">
@@ -74,7 +61,6 @@ const toggleFavorite = () => {
                             class="w-full h-full object-cover"
                             alt="Cover"
                         />
->>>>>>> develop
                     </div>
                     <div class="min-w-0">
                         <p class="text-xs uppercase text-gray-400">{{ currentTrack ? 'En cours' : 'Aucun titre' }}</p>

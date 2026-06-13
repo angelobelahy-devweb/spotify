@@ -2,13 +2,8 @@
 
 <script setup lang="ts">
 import Toast from 'primevue/toast';
-<<<<<<< HEAD
-import { ref } from 'vue'
-import { Head, Link } from '@inertiajs/vue3'
-=======
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Head, Link, usePage } from '@inertiajs/vue3'
->>>>>>> develop
 import logo from '@/assets/images/logo.png'
 
 
