@@ -5,28 +5,22 @@ import { ArrowLeft, Image, User } from 'lucide-vue-next'
 import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast';
 
-// Receive single 'artist' prop from controller
-const props = defineProps([
-    'genre'
-]);
-
 // Map correct properties using 'surname' instead of 'name'
 const form = useForm({
-    _method: 'PUT', // Method spoofing for file uploads
-    name: props.genre?.name || "",
+    name: "",
 });
 
 const toast = useToast();
 
 const submit = () => {
-    form.post(`/admin/genres/${props.genre.id}`, {
-        forceFormData: true,
+    // Send as a POST request, Inertia + Laravel treats it as a PUT due to the _method attribute
+    form.post('/admin/genres', {
         onSuccess: () => {
             const successMessage = usePage().props.flash?.success;
             toast.add({
                 severity: 'success',
                 summary: 'Succès',
-                detail: successMessage || 'L\'artiste a été modifié avec succès !',
+                detail: successMessage || 'Le genre a été créé avec succès !',
                 life: 3000
             });
         },
@@ -94,13 +88,13 @@ const submit = () => {
             <button
                 type="submit"
                 :disabled="form.processing"
-                class="bg-[#33437e] hover:bg-[#364a92] active:scale-95 transition-all mt-4 duration-300 px-6 py-2 rounded-full text-sm font-bold flex items-center justify-center gap-2 w-max cursor-pointer disabled:opacity-50
+                class="bg-[#33437e] hover:bg-[#364a92] active:scale-95 transition-all duration-300 mt-4 px-6 py-2 rounded-full text-sm font-bold flex items-center justify-center gap-2 w-max cursor-pointer disabled:opacity-50
                 "
             >
                 <span v-if="form.processing" class="flex gap-2">
                     <spinner /> Création
                 </span>
-                <span v-else>Modifier</span>
+                <span v-else>Ajouter</span>
             </button>
         </form>
     </div>

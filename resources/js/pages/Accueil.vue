@@ -4,7 +4,7 @@
 import PrimaryButton from '@/components/angelo/button/PrimaryButton.vue';
 import MusicCard from '@/components/angelo/cards/MusicCard.vue';
 
-import 'vue3-carousel/carousel.css';
+import 'vue3-carousel/dist/carousel.css';
 import { Carousel, Slide, Navigation, injectCarousel } from 'vue3-carousel'
 import { ArrowLeft, Disc3Icon, LucideAlbum, Music, Tags } from 'lucide-vue-next';
 defineProps({
@@ -85,7 +85,7 @@ const config = {
 
 
 <template>
-    
+
     <div class="relative min-h-screen ">
         <div class="relative w-[max-content]">
             <select class="select select-[#33437e] cursor-pointer bg-[#33437e] select-sm outline-none border-none">
@@ -101,7 +101,7 @@ const config = {
                     {{ genre.name }}
                 </option>
             </select>
-        </div> 
+        </div>
         <!-- Music List -->
         <h1 class="text-[#e4e8f3d0] text-2xl my-2">Nouveauté</h1>
         <Carousel v-bind="config">
@@ -144,7 +144,7 @@ const config = {
          <h1 class="text-[#e4e8f3d0] text-2xl my-2">Suggestions</h1>
         <!-- Je veux que ceci est un carousel avec des bouttons droite et gauche -->
         <div class="flex flex-wrap items-center justify-start gap-2 ">
-            
+
             <MusicCard
                 title="Aza ambelanao"
                 artist="Rim ka"

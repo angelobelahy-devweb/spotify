@@ -9,6 +9,8 @@ Route::middleware(['auth'])
     ->controller(GenreController::class)
     ->group(function () {
         Route::get('/genres', 'index');
+        Route::get('/genres/create', 'create');
+        Route::post('/genres', 'store');
         Route::get('/genres/{id}/update', 'show');
         Route::put('/genres/{id}', 'update');
         Route::delete('/genres/{id}', 'delete');

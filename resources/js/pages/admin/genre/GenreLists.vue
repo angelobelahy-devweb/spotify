@@ -11,25 +11,25 @@ const props = defineProps([
 // Reusable theme configuration with high-contrast text and white borders
 const swalTheme = {
     // Solid dark background to block out any text underneath
-    background: '#0d0d13', 
-    border: '#ff0000', 
-    
+    background: '#0d0d13',
+    border: '#ff0000',
+
     // Smooth backdrop blur with a darker overlay to maximize contrast
     backdrop: 'rgba(0, 0, 0, 0.85) backdrop-filter: blur(8px);',
-    
+
     buttonsStyling: false,
-    
+
     // Change the exclamation mark icon color to white to match the new theme
-    iconColor: '#ff0000', 
+    iconColor: '#ff0000',
 
     customClass: {
         // Forced a pure white border and strong shadow
-        popup: 'border-2 border-white rounded-xl shadow-2xl p-8 flex flex-col items-center gap-4', 
-        
+        popup: 'border-2 border-white rounded-xl shadow-2xl p-8 flex flex-col items-center gap-4',
+
         // Used !text-white to bypass any low-opacity parenting issues
         title: '!text-white text-center text-2xl font-bold genreing-wide mt-2',
         htmlContainer: '!text-white text-sm font-medium leading-relaxed max-w-sm text-center mb-4 opacity-90',
-        
+
         // Crisp button styles
         confirmButton: 'bg-[#33437e] hover:bg-[#364a92] active:scale-95 text-white font-bold py-2.5 px-8 rounded-full mx-2 transition-all duration-300 cursor-pointer shadow-lg text-sm border border-[#4a5eb5]/30',
         cancelButton: 'bg-red-800 hover:bg-red-700 text-white font-bold py-2.5 px-8 rounded-full mx-2 transition-all duration-300 cursor-pointer shadow-lg text-sm'
@@ -97,7 +97,7 @@ const handleDelete = (id) => {
         <div class="flex gap-2 items-center justify-between mb-6">
             <div class="flex gap-2 items-center">
                 <h1 class="text-[#e4e8f3d0] text-2xl my-2">Genres</h1>
-                <Link href="/artistes/create" class="flex gap-2 items-center bg-[#121212]/80 border-2 border-[#33437e] rounded-full w-[max-content] p-1 hover:translate-y-1 transition-all duration-300">
+                <Link href="/admin/genres/create" class="flex gap-2 items-center bg-[#121212]/80 border-2 border-[#33437e] rounded-full w-[max-content] p-1 hover:translate-y-1 transition-all duration-300">
                     <div class="bg-[#33437e] hover:bg-[#364a92] active:scale-95 transition-all duration-300 p-1 rounded-full text-sm font-bold flex items-center justify-center gap-2 w-6 h-6 cursor-pointer disabled:opacity-50">
                         <Plus />
                     </div>
@@ -140,33 +140,8 @@ const handleDelete = (id) => {
 
                 <tbody class="bg-[#0a0a0a]/50 divide-y divide-[#33437e]/20">
                     <tr v-for="genre in genres" :key="genre.id" class="hover:bg-[#1a1a2e]/50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ genre.artist_id }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ genre.title }}</td>
-                        <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-300">
-                            <img :src="genre.user?.pdp ? `/storage/${genre.user.pdp}` : '/images/default-avatar.png'" alt="pdp" class="w-[35px] h-[35px] object-cover rounded-full border border-[#33437e]">
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ genre.release_year }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <span 
-                                v-if="genre.is_active" 
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20"
-                            >
-                                <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-                                Gratuit
-                            </span>
-                            <span 
-                                v-else 
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"
-                            >
-                                <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
-                                Payant
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ genre.price }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ genre.name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm flex items-center">
-                            <Link :href="`/admin/genres/${genre.id}/update`" class="text-blue-400 hover:text-blue-300 mr-3 flex gap-1 items-center">
-                                <Eye /> <span>Voir</span>
-                            </Link>
                             <Link :href="`/admin/genres/${genre.id}/update`" class="text-blue-400 hover:text-blue-300 mr-3 flex gap-1 items-center">
                                 <SquarePen /> <span>Edit</span>
                             </Link>

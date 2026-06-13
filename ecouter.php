@@ -31,7 +31,7 @@ export const playerStore = reactive({
     // Fonction pour mettre en pause / lecture
     toggle() {
         if (!this.audioElement) return;
-        
+
         if (this.isPlaying) {
             this.audioElement.pause();
             this.isPlaying = false;
@@ -43,7 +43,7 @@ export const playerStore = reactive({
 });
 Utilisez le code avec précaution.2. Modifier AlbumDetail.vue pour envoyer le fichier audioNous devons modifier la liste des chansons envoyées au composant enfant pour y inclure le vrai chemin du fichier audio (track.file_path).Modifiez la fonction formattedSongs dans votre fichier AlbumDetail.vue :javascriptconst formattedSongs = computed(() => {
     if (!props.album || !props.album.tracks) return [];
-    
+
     return props.album.tracks.map(track => ({
         id: track.id,
         title: track.title,
@@ -51,7 +51,7 @@ Utilisez le code avec précaution.2. Modifier AlbumDetail.vue pour envoyer le fi
         duration: formatDuration(track.duration),
         image: `/storage/${props.album.image}`,
         // AJOUT REQUIS : On passe le vrai lien du fichier MP3 public
-        file_path: `/storage/${track.file_path}` 
+        file_path: `/storage/${track.file_path}`
     }));
 });
 Utilisez le code avec précaution.3. Activer le clic dans votre liste AlbumSongs.vueOuvrez le fichier de votre composant AlbumSongs.vue (le tableau ou la liste qui affiche les lignes des morceaux). Nous allons lui dire d'appeler notre playerStore lors d'un clic.Modifiez-le pour ajouter l'événement de clic sur chaque ligne de chanson :html<script setup>
@@ -65,8 +65,8 @@ defineProps({
 <template>
     <div class="mt-6 flex flex-col gap-2">
         <!-- Boucle sur vos chansons -->
-        <div 
-            v-for="(song, index) in songs" 
+        <div
+            v-for="(song, index) in songs"
             :key="song.id"
             @click="playerStore.play(song)"
             class="flex items-center justify-between p-3 rounded-lg hover:bg-white/10 cursor-pointer group transition-all"
@@ -83,7 +83,7 @@ defineProps({
                     <p class="text-xs text-gray-400">{{ song.artist }}</p>
                 </div>
             </div>
-            
+
             <span class="text-xs text-gray-400 font-medium">
                 {{ song.duration }}
             </span>
@@ -98,13 +98,13 @@ import { Play, Pause, Disc } from 'lucide-vue-next';
 
 <template>
     <div class="relative min-h-screen">
-        
+
         <!-- Votre contenu actuel de l'application -->
         <slot />
 
         <!-- BARRE DE LECTURE GLOBALE -->
-        <div 
-            v-if="playerStore.currentTrack" 
+        <div
+            v-if="playerStore.currentTrack"
             class="fixed bottom-4 left-4 right-4 md:left-1/4 md:right-1/4 bg-[#121212] border border-[#2e2e2e] p-4 rounded-xl flex items-center justify-between shadow-2xl animate-fade-in z-50 text-white"
         >
             <div class="flex items-center gap-3">
@@ -116,8 +116,8 @@ import { Play, Pause, Disc } from 'lucide-vue-next';
             </div>
 
             <!-- Bouton Pause / Play -->
-            <button 
-                @click="playerStore.toggle()" 
+            <button
+                @click="playerStore.toggle()"
                 class="bg-[#33437e] hover:bg-[#364a92] text-white p-3 rounded-full active:scale-95 transition-all cursor-pointer"
             >
                 <Pause v-if="playerStore.isPlaying" class="w-5 h-5" />
@@ -127,4 +127,4 @@ import { Play, Pause, Disc } from 'lucide-vue-next';
 
     </div>
 </template>
-Utilisez le code avec précaution.Une fois ces éléments reliés, cliquez sur une ligne de votre album : le fichier MP3 stocké dans votre dossier public/tracks se lancera instantanément dans vos haut-parleurs !La musique se lance-t-elle correctement ? Si vous le souhaitez, nous pourrons ensuite ajouter une barre de progression de lecture ou la gestion du morceau suivant / précédent.                         
+Utilisez le code avec précaution.Une fois ces éléments reliés, cliquez sur une ligne de votre album : le fichier MP3 stocké dans votre dossier public/tracks se lancera instantanément dans vos haut-parleurs !La musique se lance-t-elle correctement ? Si vous le souhaitez, nous pourrons ensuite ajouter une barre de progression de lecture ou la gestion du morceau suivant / précédent.
