@@ -14,8 +14,9 @@ class AlbumController extends Controller
      */
      public function index()
     {
+        // dd(Album::all());
         return Inertia::render('admin/album/AlbumLists', [
-            'albums' => Album::all(),
+            'albums' => Album::with('artist')->get(),
         ]);
     }
 

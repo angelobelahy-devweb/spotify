@@ -139,15 +139,15 @@ const handleDelete = (id) => {
 
                 <tbody class="bg-[#0a0a0a]/50 divide-y divide-[#33437e]/20">
                     <tr v-for="album in albums" :key="album.id" class="hover:bg-[#1a1a2e]/50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ album.artist_id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ album.artist.surname }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ album.title }}</td>
                         <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-300">
-                            <img :src="album.user?.pdp ? `/storage/${album.user.pdp}` : '/images/default-avatar.png'" alt="pdp" class="w-[35px] h-[35px] object-cover rounded-full border border-[#33437e]">
+                            <img :src="`/storage/${album.image}`" alt="pdp" class="w-[35px] h-[35px] object-cover rounded-full border border-[#33437e]">
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ album.release_year }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <span 
-                                v-if="album.is_active" 
+                                v-if="album.is_free" 
                                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20"
                             >
                                 <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
@@ -161,7 +161,14 @@ const handleDelete = (id) => {
                                 Payant
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ album.price }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                            <span v-if="album.is_free">
+                                0$
+                            </span>
+                            <span v-else>
+                                {{ album.price }}$
+                            </span>
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm flex items-center">
                             <Link :href="`/admin/albums/${album.id}/update`" class="text-blue-400 hover:text-blue-300 mr-3 flex gap-1 items-center">
                                 <SquarePen /> <span>Edit</span>
