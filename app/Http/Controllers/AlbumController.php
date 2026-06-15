@@ -27,7 +27,7 @@ class AlbumController extends Controller
     // Enregistrer l'album
     public function store(Request $request)
     {
-    
+
         // Validation des données reçues du formulaire
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
@@ -50,7 +50,7 @@ class AlbumController extends Controller
         // Conversion de la valeur du checkbox en booléen
         $validated['is_free'] = $request->boolean('is_free');
         $validated['artist_id'] = Auth::user()->id;
-        
+
         // Si l'album est gratuit, le prix est mis à null
         if ($validated['is_free']) {
             $validated['price'] = null;

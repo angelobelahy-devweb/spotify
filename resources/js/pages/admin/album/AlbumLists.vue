@@ -11,25 +11,25 @@ const props = defineProps([
 // Reusable theme configuration with high-contrast text and white borders
 const swalTheme = {
     // Solid dark background to block out any text underneath
-    background: '#0d0d13', 
-    border: '#ff0000', 
-    
+    background: '#0d0d13',
+    border: '#ff0000',
+
     // Smooth backdrop blur with a darker overlay to maximize contrast
     backdrop: 'rgba(0, 0, 0, 0.85) backdrop-filter: blur(8px);',
-    
+
     buttonsStyling: false,
-    
+
     // Change the exclamation mark icon color to white to match the new theme
-    iconColor: '#ff0000', 
+    iconColor: '#ff0000',
 
     customClass: {
         // Forced a pure white border and strong shadow
-        popup: 'border-2 border-white rounded-xl shadow-2xl p-8 flex flex-col items-center gap-4', 
-        
+        popup: 'border-2 border-white rounded-xl shadow-2xl p-8 flex flex-col items-center gap-4',
+
         // Used !text-white to bypass any low-opacity parenting issues
         title: '!text-white text-center text-2xl font-bold tracking-wide mt-2',
         htmlContainer: '!text-white text-sm font-medium leading-relaxed max-w-sm text-center mb-4 opacity-90',
-        
+
         // Crisp button styles
         confirmButton: 'bg-[#33437e] hover:bg-[#364a92] active:scale-95 text-white font-bold py-2.5 px-8 rounded-full mx-2 transition-all duration-300 cursor-pointer shadow-lg text-sm border border-[#4a5eb5]/30',
         cancelButton: 'bg-red-800 hover:bg-red-700 text-white font-bold py-2.5 px-8 rounded-full mx-2 transition-all duration-300 cursor-pointer shadow-lg text-sm'
@@ -131,45 +131,61 @@ const handleDelete = (id) => {
                         <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Titre</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Image</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Etat</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Prix</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
 
                 <tbody class="bg-[#0a0a0a]/50 divide-y divide-[#33437e]/20">
-                    <tr v-for="album in albums" :key="album.id" class="hover:bg-[#1a1a2e]/50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ album.artist_id }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ album.title }}</td>
-                        <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-300">
-                            <img :src="album.user?.pdp ? `/storage/${album.user.pdp}` : '/images/default-avatar.png'" alt="pdp" class="w-[35px] h-[35px] object-cover rounded-full border border-[#33437e]">
+                    <tr v-for="album in albums" :key="album.id" class="hover:bg-[#1a1a2e]/50 transition-colors group">
+
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300 align-middle">
+                            <div class="flex items-center h-full">
+                                {{ album.artist ? album.artist.surname : 'Artiste inconnu' }}
+                            </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ album.release_year }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <span 
-                                v-if="album.is_active" 
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20"
-                            >
-                                <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-                                Gratuit
-                            </span>
-                            <span 
-                                v-else 
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"
-                            >
-                                <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
-                                Payant
-                            </span>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300 align-middle">
+                            <div class="flex items-center h-full">
+                                {{ album.title }}
+                            </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ album.price }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm flex items-center">
-                            <Link :href="`/admin/albums/${album.id}/update`" class="text-blue-400 hover:text-blue-300 mr-3 flex gap-1 items-center">
-                                <SquarePen /> <span>Edit</span>
-                            </Link>
-                            <button @click.prevent="handleDelete(album.id)" class="text-red-400 hover:text-red-300 flex gap-1 items-center">
-                                <Trash2 /> <span>Supprimer</span>
-                            </button>
+
+                        <td class="px-6 py-3 whitespace-nowrap align-middle">
+                            <div class="flex items-center justify-start h-full">
+                                <div class="w-10 h-10 rounded-lg overflow-hidden border border-[#33437e] bg-[#121212] flex items-center justify-center shadow-md group-hover:border-[#4a5eb5] transition-colors">
+                                    <img
+                                        :src="album.image ? '/storage/' + album.image : '/images/default-avatar.png'"
+                                        alt="Couverture"
+                                        class="w-full h-full object-cover select-none"
+                                    >
+                                </div>
+                            </div>
                         </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 align-middle">
+                            <div class="flex items-center h-full">
+                                {{ album.release_year }}
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-sm align-middle">
+                            <div class="flex items-center h-full">
+                                <span :class="album.price ? 'text-gray-300' : 'text-green-400 font-medium'">
+                                    {{ album.price ? album.price + ' €' : "Gratuit" }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-sm align-middle">
+                            <div class="flex items-center h-full">
+                                <button @click.prevent="handleDelete(album.id)" class="text-red-400 hover:text-red-300 flex gap-2 items-center transition-colors font-medium cursor-pointer">
+                                    <Trash2 class="w-4 h-4" />
+                                    <span>Supprimer</span>
+                                </button>
+                            </div>
+                        </td>
+
                     </tr>
                 </tbody>
             </table>

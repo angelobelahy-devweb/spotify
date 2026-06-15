@@ -9,7 +9,7 @@ Route::middleware(['auth'])
     ->controller(AlbumController::class)
     ->group(function () {
         Route::get('/albums', 'index');
-        //Route::get('/albums/{id}/update', 'show');
-        //Route::put('/albums/{id}', 'update');
-        //Route::delete('/albums/{id}', 'delete');
+        Route::get('/albums/{id}/update', 'show');
+        Route::put('/albums/{id}', 'update');
+        Route::delete('/albums/{id}', 'destroy');
 });

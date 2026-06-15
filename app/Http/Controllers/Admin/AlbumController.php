@@ -15,7 +15,7 @@ class AlbumController extends Controller
      public function index()
     {
         return Inertia::render('admin/album/AlbumLists', [
-            'albums' => Album::all(),
+            'albums' => Album::with('artist')->latest()->get()
         ]);
     }
 
@@ -64,6 +64,13 @@ class AlbumController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $album = Album::findOrFail($id);
+            $album->delete();
+
+            return redirect()->back()->with('success', 'L\'album a été supprimé avec succès !');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Impossible de supprimer cet album.');
+        }
     }
 }

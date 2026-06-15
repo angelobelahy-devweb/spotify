@@ -6,6 +6,7 @@ use App\Models\Artist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use App\Models\Role;
 
 class ArtistController extends Controller
 {
@@ -19,7 +20,8 @@ class ArtistController extends Controller
     // Enregistrer l'artiste
     public function store(Request $request)
     {
-        
+        $artistRole = Role::whereRaw('LOWER(name) = ?', [strtolower(Role::ARTIST)])->first();
+
         $validated = $request->validate([
             'surname' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -31,17 +33,25 @@ class ArtistController extends Controller
         $image = null;
         if ($request->hasFile('image')) {
             $image = $request->file('image')
-                        ->store('artists', 'public');
+                ->store('artists', 'public');
         }
 
         // Empêche double création d'artist
         if ($user->artist) {
             return back();
         }
+
         // Upload user image
         $user->update([
             'pdp' => $image
         ]);
+
+        if ($artistRole) {
+            $user->update([
+                'pdp' => $image,
+                'role_id' => $artistRole->id
+            ]);
+        }
 
         // Create artist
 
