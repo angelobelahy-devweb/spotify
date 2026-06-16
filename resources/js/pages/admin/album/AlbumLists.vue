@@ -137,6 +137,7 @@ const handleDelete = (id) => {
                 </thead>
 
                 <tbody class="bg-[#0a0a0a]/50 divide-y divide-[#33437e]/20">
+
                     <tr v-for="album in albums" :key="album.id" class="hover:bg-[#1a1a2e]/50 transition-colors group">
 
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300 align-middle">
@@ -161,7 +162,7 @@ const handleDelete = (id) => {
                                     >
                                 </div>
                             </div>
-                        </td>
+
 
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 align-middle">
                             <div class="flex items-center h-full">
