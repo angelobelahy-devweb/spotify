@@ -10,10 +10,23 @@ use Illuminate\Support\Str;
 
 class GenreController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $per_page = $request->input('per_page', 5);
+        $search = $request->input('search');
+        $query = Genre::query();
+
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $genres = $query->latest()->paginate($per_page)->withQueryString();
         return Inertia::render('admin/genre/GenreLists', [
-            'genres' => Genre::latest()->get()
+            'genres' => $genres,
+            'filters' => [
+                'search' => $search,
+                'per_page' => $per_page
+            ]
         ]);
     }
 

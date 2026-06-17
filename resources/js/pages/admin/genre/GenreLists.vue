@@ -1,12 +1,15 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3'
 import { Search, SquarePen, Trash2, Eye, Plus } from 'lucide-vue-next';
-import { defineProps, watch } from 'vue'
+import { defineProps, watch, ref } from 'vue'
 import Swal from 'sweetalert2';
+import Pagination from '@/components/Pagination.vue';
+import { debounce } from 'lodash';
 
-const props = defineProps([
-    'genres'
-]);
+const props = defineProps({
+    genres: Object,
+    filters: Object,
+})
 
 // Reusable theme configuration with high-contrast text and white borders
 const swalTheme = {
@@ -89,6 +92,35 @@ const handleDelete = (id) => {
     });
 }
 
+
+const search = ref(props.filters?.search ?? '')
+
+const performSearch = debounce(() => {
+    router.get('/admin/genres', {
+        search: search.value || undefined,
+        per_page: props.filters?.per_page,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
+}, 350)
+
+watch(search, performSearch)
+
+
+const perPage = ref(props.filters?.per_page ?? 5)
+
+function onPerPageChange() {
+    router.get('/admin/genres', {
+        search: search.value || undefined,
+        per_page: perPage.value,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    })
+}
 </script>
 
 <template>
@@ -107,8 +139,9 @@ const handleDelete = (id) => {
 
             <!-- Search Bar -->
             <div class="relative">
-                <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-50" />
+                <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
                 <input
+                    v-model="search"
                     type="text"
                     placeholder="Rechercher un genre..."
                     class="bg-[#121212]/80 border border-[#33437e] rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#4a5eb5] transition-colors"
@@ -119,12 +152,14 @@ const handleDelete = (id) => {
         <!-- Items Per Page Selector -->
         <div class="flex justify-end mb-4">
             <select
+                v-model="perPage"
+                @change="onPerPageChange"
                 class="bg-[#121212]/80 border border-[#33437e] rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:border-[#4a5eb5]"
             >
-                <option value="">5 par page</option>
-                <option value="">10 par page</option>
-                <option value="">20 par page</option>
-                <option value="">50 par page</option>
+                <option :value="5">5 par page</option>
+                <option :value="10">10 par page</option>
+                <option :value="20">20 par page</option>
+                <option :value="50">50 par page</option>
             </select>
         </div>
 
@@ -139,7 +174,7 @@ const handleDelete = (id) => {
                 </thead>
 
                 <tbody class="bg-[#0a0a0a]/50 divide-y divide-[#33437e]/20">
-                    <tr v-for="genre in genres" :key="genre.id" class="hover:bg-[#1a1a2e]/50 transition-colors">
+                    <tr v-for="genre in genres.data" :key="genre.id" class="hover:bg-[#1a1a2e]/50 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ genre.name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm flex items-center">
                             <Link :href="`/admin/genres/${genre.id}/update`" class="text-blue-400 hover:text-blue-300 mr-3 flex gap-1 items-center">
@@ -155,42 +190,6 @@ const handleDelete = (id) => {
         </div>
 
         <!-- Pagination -->
-        <div v-if="totalPages > 1" class="flex items-center justify-between mt-6">
-            <div class="text-sm text-gray-400">
-                Affichage de {{ (currentPage - 1) * itemsPerPage + 1 }} à {{ Math.min(currentPage * itemsPerPage, filteredgenres.length) }} sur {{ filteredgenres.length }} genrees
-            </div>
-
-            <div class="flex items-center gap-2">
-                <button
-                    @click="prevPage"
-                    :disabled="currentPage === 1"
-                    class="p-2 rounded-lg bg-[#121212]/80 border border-[#33437e] text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#33437e]/50 transition-all"
-                >
-                    <ChevronLeft class="w-4 h-4" />
-                </button>
-
-                <button
-                    v-for="page in pageNumbers"
-                    :key="page"
-                    @click="goToPage(page)"
-                    :class="[
-                        'px-3 py-1 rounded-lg transition-all',
-                        currentPage === page
-                            ? 'bg-[#33437e] text-white'
-                            : 'bg-[#121212]/80 border border-[#33437e] text-gray-300 hover:bg-[#33437e]/50'
-                    ]"
-                >
-                    {{ page }}
-                </button>
-
-                <button
-                    @click="nextPage"
-                    :disabled="currentPage === totalPages"
-                    class="p-2 rounded-lg bg-[#121212]/80 border border-[#33437e] text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#33437e]/50 transition-all"
-                >
-                    <ChevronRight class="w-4 h-4" />
-                </button>
-            </div>
-        </div>
+        <Pagination :pagination="genres" />
     </div>
 </template>
