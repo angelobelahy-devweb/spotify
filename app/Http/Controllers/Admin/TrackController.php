@@ -15,7 +15,7 @@ class TrackController extends Controller
     public function index()
     {
         return Inertia::render('admin/track/TrackLists', [
-            'albums' => Track::all(),
+            'tracks' => Track::all(),
         ]);
     }
 
