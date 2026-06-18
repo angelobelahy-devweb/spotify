@@ -27,7 +27,7 @@ defineProps<{
 </script>
 
 <template>
-    
+
         <Head title="Log in" />
 
         <div
@@ -41,7 +41,7 @@ defineProps<{
             v-bind="store.form()"
             :reset-on-success="['password']"
             v-slot="{ errors, processing }"
-            class="flex flex-col gap-6"
+            class="flex flex-col gap-6 text-white"
         >
             <div class="grid gap-6">
                 <div class="grid gap-2">
@@ -84,7 +84,7 @@ defineProps<{
 
                 <Button
                     type="submit"
-                    class="mt-4 w-full 
+                    class="mt-4 w-full
                     bg-[#33437e]
                     hover:bg-[#364a92]
                     active:scale-95

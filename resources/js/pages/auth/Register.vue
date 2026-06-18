@@ -24,7 +24,7 @@ defineOptions({
             v-bind="store.form()"
             :reset-on-success="['password', 'password_confirmation']"
             v-slot="{ errors, processing }"
-            class="flex flex-col gap-2 p-2 w-full md:w-[600px] items-center rounded-md"
+            class="flex flex-col gap-2 p-2 w-full md:w-[600px] items-center rounded-md text-white"
         >
             <div class="grid gap-6 justify-center items-center">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:w-[600px] w-[300px]">
@@ -38,7 +38,7 @@ defineOptions({
                             autocomplete="name"
                             name="name"
                             placeholder="Nom"
-                           
+
                         />
                         <InputError :message="errors.name" />
                     </div>
@@ -84,7 +84,7 @@ defineOptions({
                 </div>
                 <Button
                     type="submit"
-                    class="mt-2 w-[max-content] 
+                    class="mt-2 w-[max-content]
                     bg-[#33437e]
                     hover:bg-[#364a92]
                     active:scale-95
