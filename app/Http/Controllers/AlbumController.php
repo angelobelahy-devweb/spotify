@@ -49,7 +49,12 @@ class AlbumController extends Controller
 
         // Conversion de la valeur du checkbox en booléen
         $validated['is_free'] = $request->boolean('is_free');
-        $validated['artist_id'] = Auth::user()->id;
+        $artist = Artist::where('user_id', Auth::id())->first();
+
+        if (!$artist) {
+            return redirect()->back()->withError(["error" => "Vous devez avoir un profil artiste pour créer un album."]);
+        }
+        $validated['artist_id'] = $artist->id;
 
         // Si l'album est gratuit, le prix est mis à null
         if ($validated['is_free']) {

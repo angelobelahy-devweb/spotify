@@ -5,17 +5,30 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 
 class ArtistController extends Controller
 {
     //show list
-    public function index()
+    public function index(Request $request)
     {
+        $per_page = $request->input('per_page', 5);
+        $search = $request->input('search');
+        $query = Artist::with('user');
+
+        if ($search) {
+            $query->where('surname', 'like', "%{$search}%");
+        }
+
+        $artists = $query->latest()->paginate($per_page)->withQueryString();
+
         return Inertia::render('admin/artiste/ArtistLists', [
-            'artists' => Artist::with('user')->latest()->get()
+            'artists' => $artists,
+            'filters' => [
+                'search' => $search,
+                'per_page' => $per_page
+            ]
         ]);
     }
 
