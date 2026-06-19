@@ -1,6 +1,6 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3'
-import { Search, SquarePen, Trash2, Eye } from 'lucide-vue-next';
+import { Search, Trash2 } from 'lucide-vue-next';
 import { defineProps, watch } from 'vue'
 import Swal from 'sweetalert2';
 

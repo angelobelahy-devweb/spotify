@@ -143,16 +143,19 @@ const menus = [
         class="absolute bottom-0 left-0
         w-full p-4 border-t border-[#33437e]"
       >
-        <button
-          class="w-full flex items-center gap-3
-          px-2 py-2 rounded-md text-sm cursor-pointer
-          bg-[#ab072e] hover:bg-[#ab072e]/80
-          transition-all"
+        <Link
+            href="/logout"
+            method="post"
+            as="button"
+            class="w-full flex items-center gap-3
+            px-2 py-2 rounded-md text-sm cursor-pointer
+            bg-[#ab072e] hover:bg-[#ab072e]/80
+            transition-all"
         >
           <LogOut size="20" />
 
           Déconnexion
-        </button>
+        </Link>
       </div>
     </aside>
 

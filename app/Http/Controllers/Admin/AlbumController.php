@@ -12,10 +12,24 @@ class AlbumController extends Controller
     /**
      * Display a listing of the resource.
      */
-     public function index()
+     public function index(Request $request)
     {
+        $per_page = $request->input('per_page', 5);
+        $search = $request->input('search');
+        $query = Album::with('artist');
+
+        if ($search) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        $albums = $query->latest()->paginate($per_page)->withQueryString();
+
         return Inertia::render('admin/album/AlbumLists', [
-            'albums' => Album::with('artist')->latest()->get()
+            'albums' => $albums,
+            'filters' => [
+                'search' => $search,
+                'per_page' => $per_page
+            ]
         ]);
     }
 
