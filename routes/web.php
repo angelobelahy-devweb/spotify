@@ -28,3 +28,4 @@ require __DIR__ . '/Admin/subscription.php';
 require __DIR__ . '/Admin/comment.php';
 require __DIR__ . '/Admin/favorite.php';
 require __DIR__ . '/Admin/users.php';
+require __DIR__ . '/subscription.php';
