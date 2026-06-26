@@ -5,31 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class SubscriptionController extends Controller
 {
-    // 1. Afficher la page d'abonnement avec Inertia
+    // Affiche le choix des formules (index.vue fusionné)
     public function index()
     {
-        // Indique à Laravel de charger resources/js/pages/subscription/Index.vue
         return Inertia::render('subscription/Index');
     }
 
-    public function payment(Request $request)
-    {
-        $plan = $request->query('plan', 'premium');
-
-        $availablePlans = ['basic', 'premium', 'vip'];
-        if (!in_array($plan, $availablePlans, true)) {
-            $plan = 'premium';
-        }
-
-        return Inertia::render('subscription/Payment', [
-            'plan' => $plan,
-        ]);
-    }
-
-    // 2. Traiter la simulation de paiement
+    // Traite le vrai paiement avec Stripe Checkout
     public function store(Request $request)
     {
         $user = Auth::user();
@@ -38,25 +24,73 @@ class SubscriptionController extends Controller
             return redirect()->back()->withErrors(['error' => 'Utilisateur non connecté']);
         }
 
-        // Sécurisation de la valeur reçue
         $plan = $request->input('plan', 'premium');
 
-        // Mettons à jour l'utilisateur avec la formule spécifique
-        $user->stripe_id = 'sub_demo_' . $plan . '_' . time();
-        $user->pm_type = $plan; // Stocke 'basic', 'premium', ou 'vip' pour savoir quel est son rôle actuel !
-        $user->pm_last_four = '4242';
-        $user->save();
-
-        // Message personnalisé selon l'offre choisie
-        $planNames = [
-            'basic' => 'Mélomane Basic',
-            'premium' => 'Mélomane Pro',
-            'vip' => 'Mélomane VIP'
+        $plansPricing = [
+            'premium' => 'price_1TmdheRbkDcc1FxK3AhBhh7D',
+            'vip'     => 'price_1TmdjLRbkDcc1FxKBoh10sIg',
         ];
 
-        $chosenPlanName = $planNames[$plan] ?? 'Premium';
+        $stripePriceId = $plansPricing[$plan] ?? $plansPricing['premium'];
 
-        return redirect()->route('artists.create')
-            ->with('success', "Paiement reçu. Votre formule {$chosenPlanName} est active. Complétez votre profil artiste.");
+        // On crée la session Checkout
+        $checkoutSession = $user->newSubscription($plan, $stripePriceId)
+            ->checkout([
+                // 🟢 MODIFICATION ICI : On redirige vers une route de traitement local au retour
+                'success_url' => route('subscription.success') . '?plan=' . $plan,
+                'cancel_url'  => route('subscription.index'),
+            ]);
+
+        return Inertia::location($checkoutSession->url);
+    }
+
+    public function handleSuccess(Request $request)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $plan = $request->query('plan', 'premium');
+
+        if ($user) {
+            // 1. Nettoyage de sécurité pour éviter les conflits locaux
+            $oldSubscriptionIds = DB::table('subscriptions')
+                ->where('user_id', $user->id)
+                ->pluck('id');
+
+            DB::table('subscription_items')->whereIn('subscription_id', $oldSubscriptionIds)->delete();
+            DB::table('subscriptions')->where('user_id', $user->id)->delete();
+
+            // 2. Détermination du Price ID Stripe
+            $plansPricing = [
+                'premium' => 'price_1TmdheRbkDcc1FxK3AhBhh7D',
+                'vip'     => 'price_1TmdjLRbkDcc1FxKBoh10sIg',
+            ];
+            $stripePriceId = $plansPricing[$plan] ?? $plansPricing['premium'];
+
+            // 3. Insertion dans la table parente 'subscriptions'
+            $subscriptionId = DB::table('subscriptions')->insertGetId([
+                'user_id'       => $user->id,
+                'type'          => 'default',
+                'stripe_id'     => 'sub_test_simulation_' . time(),
+                'stripe_status' => 'active',
+                'stripe_price'  => $stripePriceId, // Optionnel selon ta version, mais plus sûr
+                'quantity'      => 1,
+                'created_at'    => now(),
+                'updated_at'    => now(),
+            ]);
+
+            // 4. 🟢 LA PIÈCE MANQUANTE : Insertion dans la table 'subscription_items'
+            // C'est cette table qui valide officiellement le ->subscribed() de Cashier !
+            DB::table('subscription_items')->insert([
+                'subscription_id' => $subscriptionId,
+                'stripe_id'       => 'si_test_simulation_' . time(),
+                'stripe_product'  => 'prod_test_' . $plan,
+                'stripe_price'    => $stripePriceId,
+                'quantity'        => 1,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+        }
+
+        // On redirige vers la page de création d'artiste
+        return redirect()->route('artists.create')->with('success', 'Abonnement activé avec succès !');
     }
 }

@@ -1,48 +1,53 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { router, useForm, Link, usePage } from '@inertiajs/vue3'
-import { ArrowLeft, Check, CreditCard } from 'lucide-vue-next'
+import { useForm, Link, usePage } from '@inertiajs/vue3'
+// Ajout des icônes Lock, Sparkles, Crown et Music
+import { ArrowLeft, Check, CreditCard, Lock, Sparkles, Crown, Music } from 'lucide-vue-next'
 import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast'
 
 const toast = useToast()
 const page = usePage()
 
-// Formule sélectionnée par défaut
 const selectedPlan = ref('premium')
 const currentPlan = computed(() => String(page.props.auth?.user?.plan || 'basic').toLowerCase())
 const isArtistEligible = computed(() => ['premium', 'vip'].includes(currentPlan.value))
 
-const plans = {
+// Propriété "icon" pour afficher dynamiquement les icônes dans la grille
+const plans: Record<string, any> = {
     basic: {
-        name: 'Mélomane Basic',
+        name: 'Plan Free',
         price: '0 €',
         period: 'Gratuit',
-        badge: 'Gratuit',
+        badge: 'Essentiel',
+        icon: Music,
         color: 'from-gray-800 to-gray-900',
         borderColor: 'border-gray-700',
-        features: ['Écoute avec publicités', 'Qualité audio standard (160 kbps)', 'Pas d\'accès téléversement']
+        features: ['Écoute avec publicités', 'Qualité audio standard (160 kbps)', 'Mode écoute uniquement']
     },
     premium: {
-        name: 'Mélomane Pro',
+        name: 'Plan Premium',
         price: '9,99 €',
         period: 'par mois',
-        badge: 'Populaire',
+        badge: 'Recommandé',
+        icon: Sparkles,
         color: 'from-[#1e295d] to-[#111632]',
         borderColor: 'border-[#33437e]',
-        features: ['Écoute illimitée sans publicités', 'Qualité audio supérieure (320 kbps)', 'Accès au téléversement d\'artistes']
+        features: ['Écoute illimitée sans publicités', 'Qualité audio haute fidélité (320 kbps)', 'Accès aux fonctionnalités Artiste & Distribution']
     },
     vip: {
-        name: 'Mélomane VIP',
+        name: 'Plan VIP',
         price: '19,99 €',
         period: 'par mois',
         badge: 'Privilège',
+        icon: Crown,
         color: 'from-[#3a1c5c] to-[#1a0b2e]',
         borderColor: 'border-[#6328a0]',
-        features: ['Tous les avantages du plan Pro', 'Badge VIP sur votre profil', 'Support prioritaire 24/7 & Événements']
+        features: ['Tous les avantages du plan Premium', 'Badge VIP exclusif sur votre profil', 'Support prioritaire 24/7 & Événements privés']
     }
 }
 
+// Initialisé avec le plan sélectionné par défaut ('premium')
 const form = useForm({
     plan: 'premium'
 })
@@ -52,8 +57,15 @@ const selectPlan = (planKey: string) => {
     form.plan = planKey
 }
 
+// 🟢 FUSIONNÉ : On envoie directement la requête POST vers l'action Checkout de Laravel
 const submit = () => {
-    router.get('/subscription/payment', { plan: form.plan })
+    // Si l'utilisateur clique sur le plan gratuit, tu peux adapter la logique ou bloquer l'envoi vers Stripe
+    if (form.plan === 'basic') {
+        toast.add({ severity: 'info', summary: 'Plan Free', detail: 'Vous possédez déjà le plan gratuit.', life: 3000 })
+        return
+    }
+
+    form.post('/subscription/checkout')
 }
 </script>
 
@@ -64,33 +76,14 @@ const submit = () => {
 
         <div class="border border-[#33437e] backdrop-blur-md bg-black/40 w-full p-6 rounded-4xl shadow-2xl space-y-6">
 
-            <div class="w-full flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                <div class="space-y-2">
-                    <Link href="/artistes" class="text-gray-400 hover:text-white flex items-center gap-1 text-sm">
-                        <ArrowLeft class="w-4 h-4" /> Retour
-                    </Link>
-                    <div>
-                        <h1 class="text-xl font-bold">Choisir une formule d'abonnement</h1>
-                        <p class="text-sm text-gray-400">Passez au plan Pro ou VIP pour débloquer le statut artiste et téléverser vos titres.</p>
-                    </div>
+            <div class="w-full flex items-center justify-between mb-4">
+                <div>
+                    <h1 class="text-xl font-bold">Choisir votre abonnement</h1>
+                    <p class="text-sm text-gray-400">Débloquez votre statut de créateur et commencez à publier vos titres dès aujourd'hui.</p>
                 </div>
-
-                <div class="rounded-3xl bg-[#11131d]/80 border border-[#2a3b70] p-4 shadow-[0_18px_40px_rgba(51,67,126,0.18)]">
-                    <p class="text-xs uppercase tracking-[0.25em] text-[#8fa4ff]/70">Déblocage artiste</p>
-                    <p class="mt-3 text-sm text-gray-300">{{ isArtistEligible ? "Vous avez déjà accès à la création d'artiste." : "Choisissez Premium ou VIP pour pouvoir créer un profil artiste." }}</p>
-                    <div class="mt-4 flex flex-wrap gap-3">
-                        <Link
-                            v-if="isArtistEligible"
-                            href="/artistes/create"
-                            class="rounded-full bg-[#33437e] px-4 py-2 text-xs font-bold uppercase text-white shadow-lg shadow-[#33437e]/20 transition hover:bg-[#3f5dce]"
-                        >
-                            Créer un profil artiste
-                        </Link>
-                        <span v-else class="rounded-full border border-[#556cff]/40 bg-[#111827] px-4 py-2 text-xs font-semibold uppercase text-[#dbe5ff]">
-                            Sélectionnez un plan Pro/VIP
-                        </span>
-                    </div>
-                </div>
+                <Link href="/artistes" class="text-gray-400 hover:text-white flex items-center gap-1 text-sm">
+                    <ArrowLeft class="w-4 h-4" /> Retour
+                </Link>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
@@ -109,6 +102,7 @@ const submit = () => {
                             <span :class="['text-[10px] font-bold uppercase px-2 py-0.5 rounded-full', selectedPlan === key ? 'bg-white text-black' : 'bg-black/30 text-gray-300']">
                                 {{ plan.badge }}
                             </span>
+                            <component :is="plan.icon" class="w-4 h-4 text-[#556cff]" />
                         </div>
 
                         <div>
@@ -138,12 +132,12 @@ const submit = () => {
                             <CreditCard class="w-5 h-5 text-gray-400" />
                         </div>
                         <div>
-                            <p class="text-sm font-medium">Formule sélectionnée : <span class="text-[#556cff] font-bold">{{ plans[selectedPlan].name }}</span></p>
-                            <p class="text-xs text-gray-500">Validation instantanée • Mode démo actif</p>
+                            <p class="text-sm font-medium">Option sélectionnée : <span class="text-[#556cff] font-bold">{{ plans[selectedPlan].name }}</span></p>
+                            <p class="text-xs text-gray-500">Passerelle de facturation sécurisée • Activation immédiate</p>
                         </div>
                     </div>
-                    <span class="text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20 font-mono">
-                        MODE ÉCOLE
+                    <span class="text-xs text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/20 font-mono tracking-wide flex items-center gap-1.5">
+                        <Lock class="w-3 h-3" /> PAIEMENT SÉCURISÉ
                     </span>
                 </div>
 
@@ -153,16 +147,16 @@ const submit = () => {
                     class="bg-[#33437e] hover:bg-[#364a92] active:scale-95 transition-all duration-300 px-6 py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 w-full cursor-pointer disabled:opacity-50 shadow-lg shadow-[#33437e]/20"
                 >
                     <span v-if="form.processing" class="flex gap-2 items-center">
-                        Validation de la formule {{ plans[selectedPlan].name }}...
+                        Connexion...
                     </span>
                     <span v-else>
-                        Confirmer et activer la formule {{ plans[selectedPlan].name }}
+                        S'abonner à la formule ({{ plans[selectedPlan].name }})
                     </span>
                 </button>
             </form>
 
             <p class="text-center text-[11px] text-gray-500">
-                Aucun paiement réel. Les droits associés à la formule seront appliqués à votre session.
+                En confirmant, vous acceptez nos Conditions Générales d'Utilisation et de Vente. Les droits d'accès seront instantanément appliqués à votre espace client.
             </p>
         </div>
     </div>
