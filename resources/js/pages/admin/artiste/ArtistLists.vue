@@ -164,7 +164,7 @@ function onPerPageChange() {
                         <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Profil</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Surnom</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Abonnement</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Formule</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Plan</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-[#e4e8f3d0] uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -216,9 +216,9 @@ function onPerPageChange() {
                         </td>
 
                         <td class="px-6 py-4 whitespace-nowrap text-sm flex items-center">
-                            <Link :href="`/admin/artists/${artist.id}/update`" class="text-blue-400 hover:text-blue-300 mr-3 flex gap-1 items-center">
-                                <SquarePen /> <span>Edit</span>
-                            </Link>
+                            <!--<Link :href="`/admin/artists/${artist.id}/update`" class="text-blue-400 hover:text-blue-300 mr-3 flex gap-1 items-center">
+                                /<SquarePen /> <span>Edit</span>
+                            </Link> -->
                             <button @click.prevent="handleDelete(artist.id)" class="text-red-400 hover:text-red-300 flex gap-1 items-center">
                                 <Trash2 /> <span>Supprimer</span>
                             </button>

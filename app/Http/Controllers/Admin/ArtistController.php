@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-
+use Illuminate\Support\Facades\DB;
 
 class ArtistController extends Controller
 {
@@ -15,7 +15,8 @@ class ArtistController extends Controller
     {
         $per_page = $request->input('per_page', 5);
         $search = $request->input('search');
-        $query = Artist::with('user');
+
+        $query = Artist::with(['user.subscriptions']);
 
         if ($search) {
             $query->where('surname', 'like', "%{$search}%");
@@ -23,11 +24,32 @@ class ArtistController extends Controller
 
         $artists = $query->latest()->paginate($per_page)->withQueryString();
 
+        // Map to add is_active and subscription_tier
+        $artists->through(function ($artist) {
+            $user = $artist->user;
+
+            $subscription = $user?->subscriptions()
+                ->where('stripe_status', 'active')
+                ->where(function ($q) {
+                    $q->whereNull('ends_at')
+                    ->orWhere('ends_at', '>', now());
+                })
+                ->latest()
+                ->first();
+
+            $tier = $subscription?->type ?? 'basic';
+
+            $artist->is_active = !is_null($subscription);
+            $artist->subscription_tier = $tier;
+
+            return $artist;
+        });
+
         return Inertia::render('admin/artiste/ArtistLists', [
             'artists' => $artists,
             'filters' => [
                 'search' => $search,
-                'per_page' => $per_page
+                'per_page' => $per_page,
             ]
         ]);
     }
@@ -71,12 +93,39 @@ class ArtistController extends Controller
     public function delete($id)
     {
         try {
-            $artist = Artist::findOrFail($id);
+            $artist = Artist::with('user')->findOrFail($id);
+            $user = $artist->user;
+
+            if ($user) {
+                // 1. Remove subscription_items first (foreign key)
+                $subscriptionIds = DB::table('subscriptions')
+                    ->where('user_id', $user->id)
+                    ->pluck('id');
+
+                DB::table('subscription_items')
+                    ->whereIn('subscription_id', $subscriptionIds)
+                    ->delete();
+
+                // 2. Remove subscriptions
+                DB::table('subscriptions')
+                    ->where('user_id', $user->id)
+                    ->delete();
+
+                // 3. Reset user back to basic — remove artist role and pm_type
+                $basicRole = \App\Models\Role::whereRaw('LOWER(name) = ?', ['user'])->first();
+
+                $user->update([
+                    'pm_type' => null,
+                    'role_id' => $basicRole?->id,
+                ]);
+            }
+
+            // 4. Delete the artist profile
             $artist->delete();
 
-            return redirect()->back()->with('success', 'L\'artiste a été supprimé avec succès !');
+            return redirect()->back()->with('success', 'L\'artiste et son abonnement ont été supprimés avec succès !');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Impossible de supprimer cet artiste.');
+            return redirect()->back()->with('error', 'Impossible de supprimer cet artiste : ' . $e->getMessage());
         }
     }
 }
