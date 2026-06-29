@@ -10,57 +10,79 @@ use App\Models\Role;
 
 class ArtistController extends Controller
 {
-    //
-    // Afficher le formulaire
+    // ✅ ADD THIS
+    public function index()
+    {
+        $user = Auth::user();
+
+        $subscription = $user?->subscriptions()
+            ->where('stripe_status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('ends_at')
+                  ->orWhere('ends_at', '>', now());
+            })
+            ->latest()
+            ->first();
+
+        return Inertia::render('music/artiste/ArtisteList', [
+            'artists'              => Artist::with('user')->latest()->get(),
+            'isArtist'             => $user?->artist !== null,
+            'isSubscriptionActive' => !is_null($subscription),
+        ]);
+    }
+
     public function create()
     {
+        $user = Auth::user();
+
+        if (!$user || (!$user->subscribed('premium') && !$user->subscribed('vip'))) {
+            return redirect()->route('subscription.index')
+                ->with('error', 'Vous devez souscrire à une offre Premium ou VIP.');
+        }
+
         return Inertia::render('music/artiste/Create');
     }
 
-    // Enregistrer l'artiste
     public function store(Request $request)
     {
-        $artistRole = Role::whereRaw('LOWER(name) = ?', [strtolower(Role::ARTIST)])->first();
-
-        $validated = $request->validate([
-            'surname' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'required|image',
-        ]);
         $user = Auth::user();
 
-        // Upload image
-        $image = null;
-        if ($request->hasFile('image')) {
-            $image = $request->file('image')
-                ->store('artists', 'public');
+        if (!$user || (!$user->subscribed('premium') && !$user->subscribed('vip'))) {
+            return redirect()->route('subscription.index')
+                ->with('error', 'Action non autorisée. Veuillez mettre à niveau votre forfait.');
         }
 
-        // Empêche double création d'artist
+        $artistRole = Role::whereRaw('LOWER(name) = ?', [strtolower(Role::ARTIST)])->first();
+
+        $request->validate([
+            'surname'     => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image'       => 'required|image',
+        ]);
+
+        $image = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image')->store('artists', 'public');
+        }
+
         if ($user->artist) {
             return back();
         }
 
-        // Upload user image
-        $user->update([
-            'pdp' => $image
-        ]);
-
         if ($artistRole) {
             $user->update([
-                'pdp' => $image,
-                'role_id' => $artistRole->id
+                'pdp'     => $image,
+                'role_id' => $artistRole->id,
             ]);
         }
 
-        // Create artist
-
         Artist::create([
-            'user_id' => $user->id,
-            'surname' => $request->surname,
+            'user_id'     => $user->id,
+            'surname'     => $request->surname,
             'description' => $request->description,
         ]);
 
-        return redirect()->route('artists.create')->with('success', 'Artiste créé !');
+        return redirect()->route('artists.index')
+            ->with('success', 'Artiste créé !');
     }
 }

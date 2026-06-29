@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Artist;
 use App\Models\Album;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class MusicController extends Controller
@@ -26,8 +26,21 @@ class MusicController extends Controller
     }
 
     public function artiste() {
+        $user = Auth::user();
+
+        $subscription = $user?->subscriptions()
+        ->where('stripe_status', 'active')
+        ->where(function ($q) {
+            $q->whereNull('ends_at')
+              ->orWhere('ends_at', '>', now());
+        })
+        ->latest()
+        ->first();
+
         return Inertia::render("music/artiste/ArtisteList", [
-            'artists' => Artist::with('user')->latest()->get()
+            'artists' => Artist::with('user')->latest()->get(),
+            'isArtist' => $user?->artist !== null,
+            'isSubscriptionActive' => !is_null($subscription),
         ]);
     }
     public function favorie() {

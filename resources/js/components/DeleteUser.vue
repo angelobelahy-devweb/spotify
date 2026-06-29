@@ -22,16 +22,16 @@ const passwordInput = useTemplateRef('passwordInput');
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="space-y-6 text-white p-6 border border-[#33437e] backdrop-blur-sm bg-black/40 rounded-lg">
         <Heading
             variant="small"
             title="Delete account"
             description="Delete your account and all of its resources"
         />
         <div
-            class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
+            class="space-y-4 rounded-lg border border-[#33437e] backdrop-blur-sm bg-black/40 rounded-lg p-4 dark:border-red-200/10 dark:bg-red-700/10"
         >
-            <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
+            <div class="relative space-y-0.5 text-red-600 dark:text-red-100 ">
                 <p class="font-medium">Warning</p>
                 <p class="text-sm">
                     Please proceed with caution, this cannot be undone.
@@ -51,10 +51,10 @@ const passwordInput = useTemplateRef('passwordInput');
                         :options="{
                             preserveScroll: true,
                         }"
-                        class="space-y-6"
+                        class="space-y-6 "
                         v-slot="{ errors, processing, reset, clearErrors }"
                     >
-                        <DialogHeader class="space-y-3">
+                        <DialogHeader class="space-y-3 ">
                             <DialogTitle
                                 >Are you sure you want to delete your
                                 account?</DialogTitle

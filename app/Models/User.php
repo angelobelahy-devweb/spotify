@@ -13,30 +13,28 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-// #[Fillable(['name', 'email', 'password'])]
-// #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-// class User extends Authenticatable
-// {
-//     /** @use HasFactory<UserFactory> */
-//     use HasFactory, Notifiable, TwoFactorAuthenticatable;
+use Laravel\Cashier\Billable;
 
-//     /**
-//      * Get the attributes that should be cast.
-//      *
-//      * @return array<string, string>
-//      */
-//     protected function casts(): array
-//     {
-//         return [
-//             'email_verified_at' => 'datetime',
-//             'password' => 'hashed',
-//             'two_factor_confirmed_at' => 'datetime',
-//         ];
-//     }
-// }
 
 class User extends Authenticatable
 {
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, Billable;
+
+    /**
+     * Get the attributes that should be cast.
+    *
+    * @return array<string, string>
+    */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'two_factor_confirmed_at' => 'datetime',
+        ];
+    }
+
     protected $fillable = [
         'name',
         'email',
@@ -45,6 +43,13 @@ class User extends Authenticatable
         'role_id',
         'pdp',
         'pdc',
+    ];
+
+    protected $hidden =[
+        'password', 
+        'two_factor_secret', 
+        'two_factor_recovery_codes', 
+        'remember_token'
     ];
 
     public function role(): BelongsTo
