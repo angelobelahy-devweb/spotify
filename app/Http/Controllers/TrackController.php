@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Track;
 use App\Models\Album;
 use App\Models\Genre;
+use App\Models\Artist;
 use App\Models\GenreTrack;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -12,6 +13,16 @@ use Inertia\Inertia;
 
 class TrackController extends Controller
 {
+    public function index()
+    {
+        $tracks = Track::with(['album.artist.user', 'genres'])->get();
+        $genres = Genre::select('id', 'name')->get();
+        return Inertia::render('music/tracks/TrackList', [
+            'tracks' => $tracks,
+            'genres' => $genres,
+        ]);
+    }
+
     public function create()
     {
         // $genres = [
@@ -71,13 +82,13 @@ class TrackController extends Controller
 
     // 4. RÉSOLUTION DU PROBLÈME .BIN : On force la conservation de l'extension d'origine
     $file = $request->file('audio_file');
-    
+
     // On génère un nom unique tout en gardant la bonne extension (ex: 65f3a2b1c4d5e.mp3)
     $fileName = uniqid() . '.' . $file->getClientOriginalExtension();
-    
+
     // On utilise storeAs au lieu de store pour imposer notre nom de fichier
     $path = $file->storeAs('tracks', $fileName, 'public');
-    
+
     $data['file_path'] = $path;
 
     // 5. Création en base de données

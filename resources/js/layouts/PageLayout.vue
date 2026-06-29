@@ -1,29 +1,25 @@
-
-
 <script setup lang="ts">
 import Toast from 'primevue/toast';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Head, Link, usePage } from '@inertiajs/vue3'
 import logo from '@/assets/images/logo.png'
 
-
 import PrimaryButton from '@/components/angelo/button/PrimaryButton.vue';
-import logo1 from '@/assets/images/lunnette.JPG';
 import backgroundImage from '@/assets/images/font_casque.png';
 import SearchInput from '@/components/angelo/inputs/SearchInput.vue';
 import SearchInputMd from '@/components/angelo/inputs/SearchInputMd.vue';
 import MusicPlayeur from '@/components/angelo/cards/MusicPlayeur.vue';
 import { Search } from 'lucide-vue-next'
 
-import { 
-  AlbumIcon, 
-  CogIcon, 
-  Album, 
-  HeartIcon, 
-  HomeIcon, 
-  MenuIcon, 
-  Music2, 
-  Disc3, 
+import {
+  AlbumIcon,
+  CogIcon,
+  Album,
+  HeartIcon,
+  HomeIcon,
+  MenuIcon,
+  Music2,
+  Disc3,
   ChevronDown,
   User,
   LogIn,
@@ -39,10 +35,6 @@ import FooterMusic from '@/components/angelo/footer/FooterMusic.vue';
 import { authModalStore } from '@/lib/authModalStore';
 import { dashboard, login, register } from '@/routes'
 
-
-
-
-
 withDefaults(
     defineProps<{
         canRegister: boolean;
@@ -52,7 +44,6 @@ withDefaults(
         canRegister: true,
     },
 );
-
 
 const isOpenModal = ref(false);
 const openModal = () => {
@@ -64,23 +55,49 @@ const closeModal = (data) => {
 }
 
 const sidebarOpen = ref(true)
+
+// 👉 Gestion du dropdown personnalisé
+const isDropdownOpen = ref(false);
+
+const toggleDropdown = () => {
+    isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+const closeDropdown = () => {
+    isDropdownOpen.value = false;
+};
+
+// 👉 Fermer le dropdown en cliquant à l'extérieur
+const handleClickOutside = (event: MouseEvent) => {
+    const dropdown = document.querySelector('.custom-dropdown');
+    if (dropdown && !dropdown.contains(event.target as Node)) {
+        closeDropdown();
+    }
+};
+
+// 👉 Ajouter/retirer l'écouteur d'événements
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside);
+});
 </script>
 
 <template>
-  <div class="w-full flex max-h-screen bg-[#0d1329] overflow-y-hidden">
-    <!-- On place le Toast ici au niveau global -->
+  <div class="w-full flex max-h-screen bg-[#0d1329] overflow-y-hidden overflow-x-hidden">
     <Toast />
+    
     <!-- Sidebar -->
-    <aside :class="sidebarOpen ? 'w-50' : 'w-15'" class="p-2 bg-[#0d1329] text-white transition-all duration-300 relative">
-      <div  class="flex justify-start items-center">
+    <aside :class="sidebarOpen ? 'w-50' : 'w-15'" class="p-2 bg-[#0d1329] text-white transition-all duration-300 relative flex-shrink-0">
+      <div class="flex justify-start items-center">
         <Link href="/" class="text-xl font-bold">
           <img :src="logo" alt="logo" class="w-30">
         </Link>
       </div>
       <nav class="mt-5">
         <ul class="space-y-1">
-
-          <!-- ACCUEIL -->
           <Link
             href="/"
             :class="[
@@ -88,320 +105,227 @@ const sidebarOpen = ref(true)
               sidebarOpen ? 'justify-start' : 'justify-center',
               $page.url === '/' ? 'bg-gradient-to-r from-black/80 to-[#33437ed0] shadow-lg' : ''
             ]"
-             title='Accueil'
+            title='Accueil'
           >
-            <HomeIcon class="w-5 h-5" />
-
-            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
-              Accueil
-            </li>
+            <HomeIcon class="w-5 h-5 flex-shrink-0" />
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">Accueil</li>
           </Link>
 
-          <!-- ALBUM -->
           <Link
             href="/albums"
             :class="[
               'flex items-center gap-4 px-3 py-2 rounded-md text-sm transition-all duration-300 hover:bg-[#33437ed0]',
               sidebarOpen ? 'justify-start' : 'justify-center',
-              $page.url.startsWith('/albums')
-                ? 'bg-gradient-to-r from-black/80 to-[#33437ed0] shadow-lg'
-                : ''
+              $page.url.startsWith('/albums') ? 'bg-gradient-to-r from-black/80 to-[#33437ed0] shadow-lg' : ''
             ]"
             title='Album'
           >
-            <Album class="w-5 h-5" />
-
-            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
-              Albums
-            </li>
+            <Album class="w-5 h-5 flex-shrink-0" />
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">Albums</li>
           </Link>
 
-          <!-- ARTISTE -->
           <Link
             href="/artistes"
             :class="[
               'flex items-center gap-4 px-3 py-2 rounded-md text-sm transition-all duration-300 hover:bg-[#33437ed0]',
               sidebarOpen ? 'justify-start' : 'justify-center',
-              $page.url.startsWith('/artistes')
-                ? 'bg-gradient-to-r from-black/80 to-[#33437ed0] shadow-lg'
-                : ''
+              $page.url.startsWith('/artistes') ? 'bg-gradient-to-r from-black/80 to-[#33437ed0] shadow-lg' : ''
             ]"
             title='Artiste'
           >
-            <Music2 class="w-5 h-5" />
-
-            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
-              Artistes
-            </li>
+            <Music2 class="w-5 h-5 flex-shrink-0" />
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">Artistes</li>
           </Link>
 
-          <!-- MUSIC -->
           <Link
-            href="/tracks/create"
+            href="/tracks"
             :class="[
               'flex items-center gap-4 px-3 py-2 rounded-md text-sm transition-all duration-300 hover:bg-[#33437ed0]',
               sidebarOpen ? 'justify-start' : 'justify-center',
-              $page.url.startsWith('/tracks')
-                ? 'bg-gradient-to-r from-black/80 to-[#33437ed0] shadow-lg'
-                : ''
+              $page.url.startsWith('/tracks') ? 'bg-gradient-to-r from-black/80 to-[#33437ed0] shadow-lg' : ''
             ]"
             title='Music'
           >
-            <Disc3 class="w-5 h-5" />
-
-            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
-              Tracks
-            </li>
+            <Disc3 class="w-5 h-5 flex-shrink-0" />
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">Tracks</li>
           </Link>
 
-          <!-- FAVORIE -->
           <Link
             href="/favories"
             :class="[
               'flex items-center gap-4 px-3 py-2 rounded-md text-sm transition-all duration-300 hover:bg-[#33437ed0]',
               sidebarOpen ? 'justify-start' : 'justify-center',
-              $page.url.startsWith('/favories')
-                ? 'bg-gradient-to-r from-black/80 to-[#33437ed0] shadow-lg'
-                : ''
+              $page.url.startsWith('/favories') ? 'bg-gradient-to-r from-black/80 to-[#33437ed0] shadow-lg' : ''
             ]"
             title='Favorie'
           >
-            <HeartIcon class="w-5 h-5" />
-
-            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">
-              Favoris
-            </li>
+            <HeartIcon class="w-5 h-5 flex-shrink-0" />
+            <li :class="sidebarOpen ? 'text-sm' : 'hidden'">Favoris</li>
           </Link>
-
         </ul>
       </nav>
       <span class="blurr"></span>
       <span class="blurr"></span>
-      <!-- Music Playeur -->
-        <MusicPlay class="fixed
-          bottom-0
-          left-0
-          right-0
-          w-full
-          z-50" @click.prevent="openModal" />
+      <MusicPlay class="fixed bottom-0 left-0 right-0 w-full z-50" @click.prevent="openModal" />
     </aside>
 
     <!-- Main -->
-    <div class="flex-1 flex flex-col">
+    <div class="flex-1 flex flex-col min-w-0 relative">
       <!-- Navbar -->
-      <header class="bg-[#0d1329] p-4 flex justify-between items-center text-black">
-        <button @click="sidebarOpen = !sidebarOpen" class="text-black cursor-pointer hover:text-dark flex justify-center items-center w-8 h-8  rounded-sm">
-          <Sidebar  class="w-7 h-7 text-white"/>
+      <header class="bg-[#0d1329] p-4 flex justify-between items-center text-black flex-shrink-0 relative z-50">
+        <button @click="sidebarOpen = !sidebarOpen" class="text-black cursor-pointer hover:text-dark flex justify-center items-center w-8 h-8 rounded-sm">
+          <Sidebar class="w-7 h-7 text-white flex-shrink-0"/>
         </button>
+        
         <div class="flex gap-5 items-center justify-end">
-          <div class="not-md:hidden">
-            <SearchInput/>
-          </div>
-          
-          <label for="my_modal_7" class="md:hidden">
+          <label for="my_modal_7" class="">
             <SearchInputMd />
           </label>
 
-          <!-- Put this part before </body> tag -->
           <input type="checkbox" id="my_modal_7" class="modal-toggle" />
           <div class="modal" role="dialog">
             <div class="modal-box">
-              <div class="flex  items-center  bg-black/20  border border-[#33437e]  backdrop-blur-xl rounded-full px-2 py-2">
-                  <Search class="w-5 h-5 text-gray-400" />
-                  <input  type="text" placeholder="Que souhaitez-vous écouter ?" class="bg-transparent  outline-none  text-white  text-xs  ml-3  w-full"/>
+              <div class="flex items-center bg-black/20 border border-[#33437e] backdrop-blur-xl rounded-full px-2 py-2">
+                <Search class="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <input type="text" placeholder="Que souhaitez-vous écouter ?" class="bg-transparent outline-none text-white text-xs ml-3 w-full"/>
               </div>
+              <PrimaryButton size="xs" class="w-[max-content] mt-2">Entrer</PrimaryButton>
             </div>
             <label class="modal-backdrop" for="my_modal_7">Close</label>
           </div>
-          
+
           <div v-if="$page.props.auth.user" class="flex gap-5 items-center">
+            <Link href="/explore-premium">
+              <PrimaryButton size="xs" class="w-[500px]">Explore premium</PrimaryButton>
+            </Link>
             
-              <PrimaryButton
-              size="xs" class="w-[500px]">
-                  Explore premium
-              </PrimaryButton>
-              <!-- PROFILE -->
-              <div class="dropdown dropdown-end w-[max-content]">
-                
-                <!-- BUTTON -->
-                <div
-                  tabindex="0"
-                  role="button"
-                  class="
-                    flex items-center gap-3  w-[max-content]
-                  "
-                >
-
-                  <div class="w-10 rounded-full h-10 bg-white/80 text-lg flex justify-center items-center font-bold cursor-pointer">
+            <!-- 👉 DROPDOWN PERSONNALISÉ -->
+            <div class="custom-dropdown">
+              <button 
+                @click="toggleDropdown"
+                class="dropdown-trigger"
+              >
+                <div class="avatar">
                   {{ $page.props.auth.user.name.charAt(0) }}
-                  </div>
-
-                  
                 </div>
+                <ChevronDown class="dropdown-arrow" :class="{ 'rotate-180': isDropdownOpen }" />
+              </button>
 
-                <!-- DROPDOWN -->
-                <ul
-                  tabindex="0"
-                  class="
-                    dropdown-content
-                    z-[999]
-                    menu
-                    p-2
-                    shadow-2xl
-                    bg-[#181818]
-                    rounded-2xl
-                    w-64
-                    border
-                    border-white/10
-                    mb-2
-                  "
+              <!-- Dropdown menu -->
+              <transition 
+                enter-active-class="dropdown-enter-active"
+                leave-active-class="dropdown-leave-active"
+                enter-from-class="dropdown-enter-from"
+                leave-to-class="dropdown-leave-to"
+              >
+                <div 
+                  v-if="isDropdownOpen"
+                  class="dropdown-menu"
                 >
-
-                  <!-- HEADER -->
-                  <div class="px-3 py-2 border-b border-white/10 mb-2">
-                    <p class="text-white font-semibold">
-                      {{ $page.props.auth.user.name }}
-                    </p>
-
-                    <p class="text-xs text-gray-400">
-                      {{ $page.props.auth.user.email }}
-                    </p>
+                  <div class="dropdown-header">
+                    <p class="dropdown-user-name">{{ $page.props.auth.user.name }}</p>
+                    <p class="dropdown-user-email">{{ $page.props.auth.user.email }}</p>
                   </div>
-
-                  <!-- PROFILE -->
-                  <li>
-                    <Link
-                      href="/profile"
-                      class="flex gap-2 items-center p-2 hover:bg-[#33437ed0] cursor-pointer rounded transition text-white"
-                    >
-                      <User class="w-4 h-4" />
-                      Voir Profil
-                    </Link>
-                  </li>
-
-                  <!-- SETTINGS -->
-                  <li>
-                    <Link
-                      href="/settings"
-                      class="flex gap-2 items-center p-2 hover:bg-[#33437ed0] cursor-pointer rounded transition text-white"
-                    >
-                      <Settings class="w-4 h-4" />
-                      Paramètres
-                    </Link>
-                  </li>
-
-                  <!-- LOGOUT -->
-                  <li>
-                    <Link
-                      href="/logout"
-                      method="post"
-                      as="button"
-                      class="flex items-center gap-2 text-red-500 hover:text-white hover:bg-red-500 transition"
-                    >
-                      <LogOut class="w-4 h-4" />
-                      Déconnexion
-                    </Link>
-                  </li>
-
-                </ul>
-              </div>
-
+                  
+                  <Link 
+                    href="/profile" 
+                    class="dropdown-item"
+                  >
+                    <User class="dropdown-item-icon" />
+                    Voir Profil
+                  </Link>
+                  
+                  <Link 
+                    href="/settings" 
+                    class="dropdown-item"
+                  >
+                    <Settings class="dropdown-item-icon" />
+                    Paramètres
+                  </Link>
+                  
+                  <Link 
+                    href="/logout" 
+                    method="post" 
+                    as="button" 
+                    class="dropdown-item dropdown-item-danger"
+                  >
+                    <LogOut class="dropdown-item-icon" />
+                    Déconnexion
+                  </Link>
+                </div>
+              </transition>
+            </div>
           </div>
+          
           <div v-else class="flex gap-3 items-center">
-                <Link
-                    :href="login()"
-                >
-                    <PrimaryButton>
-                      <LogIn class=" w-5 h-5 text-white" />
-                     <span class="not-md:hidden"> Se connecter </span>
-                    </PrimaryButton>
-                </Link>
-                <Link
-                    v-if="canRegister"
-                    :href="register()"
-                >
-                    <PrimaryButton>
-                      <UserPlus class=" w-5 h-5 text-white" />
-                        <span class="not-md:hidden">Créer un compte</span>
-                    </PrimaryButton>
-                </Link>
+            <Link :href="login()">
+              <PrimaryButton>
+                <LogIn class="w-5 h-5 text-white flex-shrink-0" />
+                <span class="not-md:hidden">Se connecter</span>
+              </PrimaryButton>
+            </Link>
+            <Link v-if="canRegister" :href="register()">
+              <PrimaryButton>
+                <UserPlus class="w-5 h-5 text-white flex-shrink-0" />
+                <span class="not-md:hidden">Créer un compte</span>
+              </PrimaryButton>
+            </Link>
           </div>
         </div>
       </header>
 
-      
-
       <!-- Content -->
       <main
-        class="
-        relative
-        flex
-        flex-col
-        w-full
-        h-screen
-        overflow-y-auto
-        rounded-[1rem_0_0_0]
-        bg-cover
-        bg-center
-        "
+        class="relative flex flex-col w-full h-screen overflow-y-auto overflow-x-hidden rounded-[1rem_0_0_0] bg-cover bg-center"
         :style="{
           backgroundImage: `linear-gradient(#000, #33437e44),url(${backgroundImage})`
         }"
       >
-
-        <div class="relative z-10 p-[10px_10px_6rem_10px]">
+        <div class="relative z-10 p-[10px_10px_6rem_10px] w-full max-w-full overflow-x-hidden">
           <slot />
-        </div>
-        <div>
-          <FooterMusic class="mb-[5rem]"/>
+          <div>
+            <FooterMusic class="mt-5 mb-5" />
+          </div>
         </div>
       </main>
     </div>
-
-
   </div>
+  
   <BaseModal v-if="isOpenModal" @close-modal="closeModal">
-      <MusicPlayeur/>
+    <MusicPlayeur/>
   </BaseModal>
 
   <BaseModal v-if="authModalStore.open" @close-modal="authModalStore.open = false">
-      <div class="text-white">
-          <h2 class="text-2xl font-semibold mb-3">Connexion requise</h2>
-          <p class="text-gray-300 leading-relaxed">{{ authModalStore.message }}</p>
-          <div class="mt-6 flex justify-end gap-2">
-              <button
-                  @click="authModalStore.open = false"
-                  class="px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10"
-              >
-                  Annuler
-              </button>
-              <Link
-                  href="/login"
-                  class="px-4 py-2 rounded-lg bg-[#33437e] text-white hover:bg-[#2a3560]"
-              >
-                  Se connecter
-              </Link>
-          </div>
+    <div class="text-white">
+      <h2 class="text-2xl font-semibold mb-3">Connexion requise</h2>
+      <p class="text-gray-300 leading-relaxed">{{ authModalStore.message }}</p>
+      <div class="mt-6 flex justify-end gap-2">
+        <button @click="authModalStore.open = false" class="px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10">
+          Annuler
+        </button>
+        <Link href="/login" class="px-4 py-2 rounded-lg bg-[#33437e] text-white hover:bg-[#2a3560]">
+          Se connecter
+        </Link>
       </div>
+    </div>
   </BaseModal>
-
 </template>
 
 <style scoped>
 @font-face {
-  font-family: 'titre'; /* OBLIGATOIRE */
-  src: url('/assets/fonts/titre.ttf') format('truetype'); /* préciser le format */
+  font-family: 'titre';
+  src: url('/assets/fonts/titre.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 .titre {
   font-family: 'titre', sans-serif;
-
 }
+
 @font-face {
-  font-family: 'text'; /* OBLIGATOIRE */
-  src: url('/assets/fonts/text.ttf') format('truetype'); /* préciser le format */
+  font-family: 'text';
+  src: url('/assets/fonts/text.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -409,14 +333,160 @@ const sidebarOpen = ref(true)
 .texte {
   font-family: 'text', sans-serif;
 }
-#main {
-  background: red;
-}
+
 .blurr {
   position: absolute;
   box-shadow: 0 0 1000px 50px rgb(39, 59, 133);
   z-index: 20;
 }
 
+/* ========== DROPDOWN PERSONNALISÉ ========== */
+.custom-dropdown {
+  position: relative;
+  overflow: visible !important;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.dropdown-trigger:hover {
+  opacity: 0.8;
+}
+
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.125rem;
+  font-weight: bold;
+  flex-shrink: 0;
+  color: #0d1329;
+}
+
+.dropdown-arrow {
+  width: 1rem;
+  height: 1rem;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* ========== MENU DROPDOWN ========== */
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  width: 16rem;
+  background: #09090fd0;
+  border-radius: 1rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  z-index: 9999;
+  min-width: 16rem;
+}
+
+.dropdown-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0.5rem;
+}
+
+.dropdown-user-name {
+  color: white;
+  font-weight: 600;
+  margin: 0;
+}
+
+.dropdown-user-email {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  color: white;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: rgba(51, 67, 126, 0.8);
+}
+
+.dropdown-item-danger {
+  color: #ef4444;
+}
+
+.dropdown-item-danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.dropdown-item-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* ========== ANIMATIONS DROPDOWN ========== */
+.dropdown-enter-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-leave-active {
+  transition: all 0.15s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-0.5rem) scale(0.95);
+}
 </style>
 
+<style>
+/* 👉 Styles globaux pour empêcher le scroll horizontal */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+}
+
+* {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ========== RESPONSIVE DROPDOWN ========== */
+@media (max-width: 640px) {
+  .dropdown-menu {
+    width: 14rem;
+    right: -1rem;
+  }
+}
+</style>

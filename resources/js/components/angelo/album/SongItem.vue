@@ -122,7 +122,7 @@ const handlePlayTrack = (event) => {
       cursor-pointer
     "
   >
-    <div class="text-4xl font-thin opacity-30 tabular-nums">
+    <div class="text-xl font-thin opacity-30 tabular-nums">
       {{ index }}
     </div>
 
