@@ -94,7 +94,7 @@ defineProps({
 
             </div>
 
-            <!-- BUTTONS -->
+            <!-- BUTTONS 
             <div class="flex items-center gap-4 mt-6">
 
                 <PrimaryButton
@@ -116,11 +116,10 @@ defineProps({
                     text-white
                     "
                 >
-                    <!-- Heart -->
                     <HeartIcon class="fill-gray-400 text-gray-400 w-4 h-4" /> Favorie
                 </button>
 
-            </div>
+            </div>-->
 
         </div>
 

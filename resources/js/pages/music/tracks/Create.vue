@@ -87,10 +87,12 @@ const submit = () => {
 <template>
   <Toast />
 
-  <div class="backdrop-blur-md max-w-md mx-auto mt-10 p-6 bg-black/40 rounded-lg shadow flex flex-col items-center justify-center text-white  border border-[#33437e]">
-    
+  <div class="w-[500px] backdrop-blur-md max-w-md mx-auto mt-10 p-6 bg-black/40 rounded-lg shadow flex flex-col items-center justify-center text-white  border border-[#33437e]">
+
     <div class="w-full flex items-center justify-between mb-6">
-        
+        <Link href="/tracks" class="text-gray-400 hover:text-white flex items-center gap-1 text-sm">
+            <ArrowLeft class="w-4 h-4" /> Retour
+        </Link>
         <h1 class="text-xl font-bold">Ajouter une Musique</h1>
     </div>
 

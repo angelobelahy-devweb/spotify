@@ -76,7 +76,7 @@ const submit = () => {
   <!-- Le composant Toast doit être présent pour afficher les notifications -->
   <Toast />
 
-  <div class="border border-[#33437e] backdrop-blur-md max-w-md mx-auto mt-10 p-6 bg-black/40 rounded-lg shadow flex flex-col items-center justify-center text-white">
+  <div class="border border-[#33437e] backdrop-blur-md max-w-md mx-auto mt-10 p-6 bg-black/40 rounded-lg shadow flex flex-col items-center justify-center text-white w-[500px]">
     
     <div class="w-full flex items-center justify-between mb-6">
         <Link href="/albums" class="text-gray-400 hover:text-white flex items-center gap-1 text-sm">

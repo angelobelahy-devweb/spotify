@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { ChevronFirst, ChevronLast, HeartIcon, Play, Pause, Volume2 } from 'lucide-vue-next';
+import { ChevronFirst, ChevronLast, HeartIcon, Play, Pause, Volume2, Music2 } from 'lucide-vue-next';
 import { playerStore } from '@/lib/playerStore';
 
 const currentTrack = computed(() => playerStore.currentTrack);
@@ -55,12 +55,14 @@ const toggleFavorite = () => {
 
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-4 min-w-0">
-                    <div class="w-24 h-24 rounded-full overflow-hidden shadow-lg bg-slate-900">
-                        <img
-                            :src="currentTrack?.image || '/assets/images/album.JPG'"
-                            class="w-full h-full object-cover"
-                            alt="Cover"
-                        />
+                    
+                    <div class="w-16 h-16 overflow-hidden rounded-lg shadow-lg flex justify-center items-center bg-slate-900">
+                        <template v-if="currentTrack">
+                            <img :src="currentTrack.image || '/assets/images/album.JPG'" class="w-full h-full object-cover" />
+                        </template>
+                        <template v-else>
+                            <Music2 class="w-8 h-8 text-gray-400" />
+                        </template>
                     </div>
                     <div class="min-w-0">
                         <p class="text-xs uppercase text-gray-400">{{ currentTrack ? 'En cours' : 'Aucun titre' }}</p>
