@@ -236,7 +236,7 @@ onBeforeUnmount(() => {
                   </Link>
                   
                   <Link 
-                    href="/settings" 
+                    href="/settings/profile" 
                     class="dropdown-item"
                   >
                     <Settings class="dropdown-item-icon" />
