@@ -6,11 +6,9 @@ use App\Models\Artist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use App\Models\Role;
 
 class ArtistController extends Controller
 {
-    // ✅ ADD THIS
     public function index()
     {
         $user = Auth::user();
@@ -25,7 +23,7 @@ class ArtistController extends Controller
             ->first();
 
         return Inertia::render('music/artiste/ArtisteList', [
-            'artists'              => Artist::with('user')->latest()->get(),
+            'artists'              => Artist::with('user')->where('status', 'approved')->latest()->get(),
             'isArtist'             => $user?->artist !== null,
             'isSubscriptionActive' => !is_null($subscription),
         ]);
@@ -35,67 +33,68 @@ class ArtistController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Si l'utilisateur n'a pas initié d'abonnement / n'a pas de ligne artiste -> Retour aux abonnements
+        // 1. Pas encore de profil artiste => souscrire d'abord
         if (!$user->artist) {
             return redirect()->route('subscription.index');
         }
 
-        // 2. Si le paiement est fait mais que l'admin n'a pas encore cliqué sur Approuver -> Bloqué sur Pending !
+        // 2. En attente => page d'attente
         if ($user->artist->status === 'pending') {
             return redirect()->route('subscription.pending');
         }
 
-        // 3. Si le profil a été rejeté par l'administration
-        if ($user->artist->status === 'rejected') {
-            return Inertia::render('Artist/Create', [
-                'error_message' => 'Votre demande précédente a été rejetée. Veuillez corriger vos informations.'
-            ]);
+        // 3. Approuvé => formulaire artiste
+        if ($user->artist->status === 'approved') {
+            return Inertia::render('music/artiste/Create');
         }
 
-        // 4. Si le statut est 'approved', il accède enfin au formulaire pour remplir ses données !
-        return Inertia::render('Artist/Create');
+        // 4. Rejeté => retour au choix d'abonnement
+        if ($user->artist->status === 'rejected') {
+            return redirect()->route('subscription.index')
+                ->with('error', 'Votre demande a été refusée. Veuillez choisir un nouveau forfait.');
+        }
+
+        // Filet de sécurité
+        return redirect()->route('subscription.index');
     }
-    
+
     public function store(Request $request)
     {
         $user = Auth::user();
 
-        if (!$user || (!$user->subscribed('premium') && !$user->subscribed('vip'))) {
-            return redirect()->route('subscription.index')
-                ->with('error', 'Action non autorisée. Veuillez mettre à niveau votre forfait.');
-        }
+        $hasSubscription = $user->subscriptions()->where('stripe_status', 'active')->exists();
 
-        $artistRole = Role::whereRaw('LOWER(name) = ?', [strtolower(Role::ARTIST)])->first();
+        if (!$user || !$hasSubscription) {
+            return redirect()->route('subscription.index')
+                ->with('error', 'Action non autorisée. Veuillez souscrire à un forfait.');
+        }
 
         $request->validate([
             'surname'     => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image'       => 'required|image',
+            'image'       => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $image = null;
         if ($request->hasFile('image')) {
-            $image = $request->file('image')->store('artists', 'public');
+            $imagePath = $request->file('image')->store('artists', 'public');
+            $user->update(['pdp' => $imagePath]);
         }
 
         if ($user->artist) {
-            return back();
-        }
-
-        if ($artistRole) {
-            $user->update([
-                'pdp'     => $image,
-                'role_id' => $artistRole->id,
+            $user->artist->update([
+                'surname'     => $request->surname,
+                'description' => $request->description,
+            ]);
+        } else {
+            Artist::create([
+                'user_id'     => $user->id,
+                'surname'     => $request->surname,
+                'description' => $request->description,
+                'status'      => 'approved',
             ]);
         }
 
-        Artist::create([
-            'user_id'     => $user->id,
-            'surname'     => $request->surname,
-            'description' => $request->description,
-        ]);
-
-        return redirect()->route('artists.index')
-            ->with('success', 'Artiste créé !');
+        return redirect('/artistes')
+            ->with('success', 'Votre profil artiste a été configuré avec succès !');
     }
 }

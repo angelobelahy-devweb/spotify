@@ -10,6 +10,7 @@ class Artist extends Model
         'surname',
         'user_id',
         'description',
+        'status',
     ];
 
     public function user()

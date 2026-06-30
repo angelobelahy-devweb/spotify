@@ -22,7 +22,6 @@ class SubscriptionController extends Controller
             return redirect()->back()->withErrors(['error' => 'Utilisateur non connecté']);
         }
 
-        // Fix de sécurité pour l'environnement de test (évite l'erreur No such customer des images 337ee4, 33dc24, 34545c)
         if ($user->stripe_id) {
             DB::table('users')->where('id', $user->id)->update([
                 'stripe_id' => null,
@@ -58,7 +57,6 @@ class SubscriptionController extends Controller
             return redirect()->route('subscription.index')->with('error', 'Session expirée.');
         }
 
-        // 1. Mettre à jour l'abonnement en premier (Qu'il soit nouveau ou un renouvellement)
         $plansPricing = [
             'premium' => 'price_1TmdheRbkDcc1FxK3AhBhh7D',
             'vip'     => 'price_1TmdjLRbkDcc1FxKBoh10sIg',
@@ -72,7 +70,6 @@ class SubscriptionController extends Controller
         DB::table('subscription_items')->whereIn('subscription_id', $oldSubscriptionIds)->delete();
         DB::table('subscriptions')->where('user_id', $user->id)->delete();
 
-        // Ajout du champ 'type' requis (Résout l'erreur QueryException de l'image 2982f3)
         $subscriptionId = DB::table('subscriptions')->insertGetId([
             'user_id'       => $user->id,
             'type'          => $plan,
@@ -98,27 +95,28 @@ class SubscriptionController extends Controller
         $user->pm_type = $plan;
         $user->save();
 
-        // 2. Création ou mise à jour du profil de l'artiste en mode 'pending'
         $user->artist()->updateOrCreate(
             ['user_id' => $user->id],
             [
-                'status' => 'pending',
-                'surname' => $user->name, // Valeur temporaire avant le formulaire
+                'status'  => 'pending',
+                'surname' => $user->name,
             ]
         );
 
         return redirect()->route('subscription.pending');
-    } // 👈 L'accolade manquante qui provoquait le ParseError a été ajoutée ici !
+    }
 
-    // Afficher la page d'attente
     public function pending()
     {
         $user = Auth::user();
 
-        // 🔄 Si l'admin a DEJA approuvé l'utilisateur entre temps,
-        // on le redirige directement vers le formulaire de création !
         if ($user->artist && $user->artist->status === 'approved') {
             return redirect()->route('artists.create');
+        }
+
+        if ($user->artist && $user->artist->status === 'rejected') {
+            return redirect()->route('subscription.index')
+                ->with('error', 'Votre demande a été refusée. Veuillez choisir un nouveau forfait.');
         }
 
         return Inertia::render('subscription/Pending');

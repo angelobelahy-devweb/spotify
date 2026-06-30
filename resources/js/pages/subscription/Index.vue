@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useForm, Link, usePage } from '@inertiajs/vue3'
-// Ajout des icônes Lock, Sparkles, Crown et Music
 import { ArrowLeft, Check, CreditCard, Lock, Sparkles, Crown, Music } from 'lucide-vue-next'
 import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast'
 
 const toast = useToast()
 const page = usePage()
+const error = computed(() => usePage().props.flash?.error)
 
 const selectedPlan = ref('premium')
 const currentPlan = computed(() => String(page.props.auth?.user?.plan || 'basic').toLowerCase())
 const isArtistEligible = computed(() => ['premium', 'vip'].includes(currentPlan.value))
 
-// Propriété "icon" pour afficher dynamiquement les icônes dans la grille
 const plans: Record<string, any> = {
     basic: {
         name: 'Plan Free',
@@ -47,7 +46,6 @@ const plans: Record<string, any> = {
     }
 }
 
-// Initialisé avec le plan sélectionné par défaut ('premium')
 const form = useForm({
     plan: 'premium'
 })
@@ -57,23 +55,22 @@ const selectPlan = (planKey: string) => {
     form.plan = planKey
 }
 
-// 🟢 FUSIONNÉ : On envoie directement la requête POST vers l'action Checkout de Laravel
 const submit = () => {
-    // Si l'utilisateur clique sur le plan gratuit, tu peux adapter la logique ou bloquer l'envoi vers Stripe
     if (form.plan === 'basic') {
         toast.add({ severity: 'info', summary: 'Plan Free', detail: 'Vous possédez déjà le plan gratuit.', life: 3000 })
         return
     }
-
     form.post('/subscription/checkout')
 }
 </script>
 
 <template>
+    <div v-if="error" class="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-400 text-sm text-center">
+        {{ error }}
+    </div>
     <Toast />
 
     <div class="text-white flex flex-col justify-center items-center min-h-[80vh] p-6 space-y-6">
-
         <div class="border border-[#33437e] backdrop-blur-md bg-black/40 w-full p-6 rounded-4xl shadow-2xl space-y-6">
 
             <div class="w-full flex items-center justify-between mb-4">
@@ -146,11 +143,14 @@ const submit = () => {
                     :disabled="form.processing || page.props.auth?.user?.artist?.status === 'pending'"
                     class="bg-[#33437e] hover:bg-[#364a92] active:scale-95 transition-all duration-300 px-6 py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 w-full cursor-pointer disabled:opacity-50 shadow-lg shadow-[#33437e]/20"
                 >
-                    <span v-if="form.processing" class="flex gap-2 items-center">
+                    <span v-if="form.processing">
                         Connexion...
                     </span>
                     <span v-else-if="page.props.auth?.user?.artist?.status === 'pending'">
                         Profil en cours de vérification administrative...
+                    </span>
+                    <span v-else-if="page.props.auth?.user?.artist?.status === 'rejected'">
+                        Reprendre un abonnement
                     </span>
                     <span v-else>
                         S'abonner à la formule ({{ plans[selectedPlan].name }})

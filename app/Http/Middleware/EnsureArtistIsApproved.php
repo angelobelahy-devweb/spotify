@@ -12,11 +12,25 @@ class EnsureArtistIsApproved
     {
         $user = Auth::user();
 
-        // 🔴 ERREUR PRÉCÉDENTE : Bloquait tous ceux qui n'avaient pas de profil artiste.
-        // 🟢 CORRECTION : On bloque uniquement si l'utilisateur possède un profil artiste MAIS qu'il n'est pas encore approuvé.
-        if ($user && $user->artist && $user->artist->status !== 'approved') {
-            return redirect()->route('subscription.index')
-                ->with('error', 'Votre compte artiste est en attente de validation administrative.');
+        // S'il n'a pas de profil artiste, on le laisse aller sur le formulaire d'inscription
+        if (!$user || !$user->artist) {
+            if ($request->routeIs('artists.create') || $request->routeIs('artists.store')) {
+                return $next($request);
+            }
+            return redirect()->route('artists.create');
+        }
+
+        // Si l'artiste est en attente, on le redirige vers la page d'attente
+        if ($user->artist->status === 'pending') {
+            if ($request->routeIs('subscription.pending')) {
+                return $next($request);
+            }
+            return redirect()->route('subscription.pending');
+        }
+
+        // Si le profil a été rejeté
+        if ($user->artist->status === 'rejected') {
+            return redirect()->route('subscription.index')->with('error', 'Votre demande a été rejetée.');
         }
 
         return $next($request);
