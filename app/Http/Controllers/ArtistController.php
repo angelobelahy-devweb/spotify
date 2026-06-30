@@ -35,14 +35,27 @@ class ArtistController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user || (!$user->subscribed('premium') && !$user->subscribed('vip'))) {
-            return redirect()->route('subscription.index')
-                ->with('error', 'Vous devez souscrire à une offre Premium ou VIP.');
+        // 1. Si l'utilisateur n'a pas initié d'abonnement / n'a pas de ligne artiste -> Retour aux abonnements
+        if (!$user->artist) {
+            return redirect()->route('subscription.index');
         }
 
-        return Inertia::render('music/artiste/Create');
-    }
+        // 2. Si le paiement est fait mais que l'admin n'a pas encore cliqué sur Approuver -> Bloqué sur Pending !
+        if ($user->artist->status === 'pending') {
+            return redirect()->route('subscription.pending');
+        }
 
+        // 3. Si le profil a été rejeté par l'administration
+        if ($user->artist->status === 'rejected') {
+            return Inertia::render('Artist/Create', [
+                'error_message' => 'Votre demande précédente a été rejetée. Veuillez corriger vos informations.'
+            ]);
+        }
+
+        // 4. Si le statut est 'approved', il accède enfin au formulaire pour remplir ses données !
+        return Inertia::render('Artist/Create');
+    }
+    
     public function store(Request $request)
     {
         $user = Auth::user();

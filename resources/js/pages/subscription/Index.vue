@@ -143,11 +143,14 @@ const submit = () => {
 
                 <button
                     type="submit"
-                    :disabled="form.processing"
+                    :disabled="form.processing || page.props.auth?.user?.artist?.status === 'pending'"
                     class="bg-[#33437e] hover:bg-[#364a92] active:scale-95 transition-all duration-300 px-6 py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 w-full cursor-pointer disabled:opacity-50 shadow-lg shadow-[#33437e]/20"
                 >
                     <span v-if="form.processing" class="flex gap-2 items-center">
                         Connexion...
+                    </span>
+                    <span v-else-if="page.props.auth?.user?.artist?.status === 'pending'">
+                        Profil en cours de vérification administrative...
                     </span>
                     <span v-else>
                         S'abonner à la formule ({{ plans[selectedPlan].name }})

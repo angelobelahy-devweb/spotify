@@ -18,6 +18,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
             $table->longText('description')->nullable();
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
     }
