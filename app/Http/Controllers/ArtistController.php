@@ -9,9 +9,10 @@ use Inertia\Inertia;
 
 class ArtistController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
+        $search = $request->input('search');
 
         $subscription = $user?->subscriptions()
             ->where('stripe_status', 'active')
@@ -22,10 +23,18 @@ class ArtistController extends Controller
             ->latest()
             ->first();
 
+        $artists = Artist::with('user')
+            ->where('status', 'approved')
+            ->when($search, fn($q) => $q->where('surname', 'like', "%{$search}%"))
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+
         return Inertia::render('music/artiste/ArtisteList', [
-            'artists'              => Artist::with('user')->where('status', 'approved')->latest()->get(),
+            'artists'              => $artists,
             'isArtist'             => $user?->artist !== null,
             'isSubscriptionActive' => !is_null($subscription),
+            'filters'              => ['search' => $search],
         ]);
     }
 
