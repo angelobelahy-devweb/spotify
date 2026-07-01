@@ -115,10 +115,21 @@ class SubscriptionController extends Controller
         }
 
         if ($user->artist && $user->artist->status === 'rejected') {
-            return redirect()->route('subscription.index')
-                ->with('error', 'Votre demande a été refusée. Veuillez choisir un nouveau forfait.');
+            return redirect()->route('subscription.rejected');
         }
 
         return Inertia::render('subscription/Pending');
+    }
+
+    public function rejected()
+    {
+        $user = Auth::user();
+
+        // If they somehow land here without being rejected, redirect appropriately
+        if (!$user->artist || $user->artist->status !== 'rejected') {
+            return redirect()->route('subscription.index');
+        }
+
+        return Inertia::render('subscription/Rejected');
     }
 }

@@ -50,8 +50,7 @@ class ArtistController extends Controller
 
         // 4. Rejeté => retour au choix d'abonnement
         if ($user->artist->status === 'rejected') {
-            return redirect()->route('subscription.index')
-                ->with('error', 'Votre demande a été refusée. Veuillez choisir un nouveau forfait.');
+            return redirect()->route('subscription.rejected');
         }
 
         // Filet de sécurité
