@@ -228,9 +228,19 @@ const formatDate = (date) => {
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
-                                    Actif
+                                <span :class="[
+                                    'flex items-center gap-1.5 w-fit px-2.5 py-1 rounded-full text-xs font-medium border',
+                                    new Date(sub.ends_at) > new Date()
+                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                        : 'bg-red-500/10 text-red-400 border-red-500/20'
+                                ]">
+                                    <span :class="[
+                                        'w-1.5 h-1.5 rounded-full',
+                                        new Date(sub.ends_at) > new Date()
+                                            ? 'bg-green-400 animate-pulse'
+                                            : 'bg-red-400'
+                                    ]"></span>
+                                    {{ new Date(sub.ends_at) > new Date() ? 'Actif' : 'Expiré' }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-400">{{ formatDate(sub.ends_at) }}</td>

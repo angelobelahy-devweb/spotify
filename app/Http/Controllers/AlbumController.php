@@ -9,6 +9,19 @@ use Illuminate\Support\Str;
 
 class AlbumController extends Controller
 {
+    //Helper pour vérifier la validité de l'abonnement
+    private function isSubscriptionActive($user)
+    {
+        if (!$user) return false;
+
+        return $user->subscriptions()
+            ->where('stripe_status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('ends_at')
+                  ->orWhere('ends_at', '>', now());
+            })
+            ->exists();
+    }
     // Afficher le formulaire avec la liste des artistes
     public function create()
     {
@@ -18,15 +31,53 @@ class AlbumController extends Controller
         // return Inertia::render('Albums/Create', [
         //     'artists' => $artists
         // ]);
-        $artists = Artist::select('id', 'surname')->get();
+
+        $user = Auth::user();
+        $artist = $user?->artist;
+
+        // 1. Déterminer le statut de l'abonnement
+        $isSubscriptionActive = $this->isSubscriptionActive($user);
+
+        // 2. Compter le nombre d'albums actuels de l'artiste
+        $albumCount = $artist ? Album::where('artist_id', $artist->id)->count() : 0;
+
+        // 3. Définir la limite selon le plan (à adapter selon tes colonnes Stripe/Plans)
+        // Exemple : si l'abonnement est actif, limite à 10, sinon plan gratuit limité à 2 (ou 5)
+        $albumLimit = $isSubscriptionActive ? 10 : 5;
+
+        //$artists = Artist::select('id', 'surname')->get();
         return Inertia::render('music/album/Create', [
-            'artists' => $artists
+            'isArtist'             => !is_null($artist) && $artist->status === 'approved',
+            'isSubscriptionActive' => $isSubscriptionActive,
+            'albumCount'           => $albumCount,
+            'albumLimit'           => $albumLimit,
+            'artists'              => Artist::select('id', 'surname')->get()
         ]);
     }
 
     // Enregistrer l'album
     public function store(Request $request)
     {
+        $user = Auth::user();
+        $artist = Artist::where('user_id', $user->id)->first();
+
+        // Sécurité 1 : Est-ce un artiste approuvé ?
+        if (!$artist || $artist->status !== 'approved') {
+            return redirect()->back()->withErrors(['error' => 'Vous devez avoir un profil artiste approuvé pour créer un album.']);
+        }
+
+        // Sécurité 2 : L'abonnement est-il actif ?
+        if (!$this->isSubscriptionActive($user)) {
+            return redirect()->back()->withErrors(['error' => 'Votre abonnement a expiré. Veuillez le renouveler.']);
+        }
+
+        // Sécurité 3 : Vérification stricte de la limite du plan
+        $albumCount = Album::where('artist_id', $artist->id)->count();
+        $albumLimit = 2; // Doit correspondre à la même logique que le create()
+
+        if ($albumCount >= $albumLimit) {
+            return redirect()->back()->withErrors(['error' => "Vous avez atteint la limite maximale de {$albumLimit} albums pour votre plan actuel."]);
+        }
 
         // Validation des données reçues du formulaire
         $validated = $request->validate([
@@ -66,6 +117,6 @@ class AlbumController extends Controller
 
         // Redirection vers la liste des albums avec un message de succès
 
-        return redirect()->route('albums.create')->with('success', 'Album créé !');
+        return redirect("/albums")->with('success', 'Album créé !');
     }
 }

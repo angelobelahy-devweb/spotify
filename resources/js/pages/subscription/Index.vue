@@ -22,7 +22,10 @@ const plans: Record<string, any> = {
         icon: Music,
         color: 'from-gray-800 to-gray-900',
         borderColor: 'border-gray-700',
-        features: ['Écoute avec publicités', 'Qualité audio standard (160 kbps)', 'Mode écoute uniquement']
+        features: [
+            '1 album gratuit',
+            '5 tracks gratuits',
+        ]
     },
     premium: {
         name: 'Plan Premium',
@@ -32,7 +35,10 @@ const plans: Record<string, any> = {
         icon: Sparkles,
         color: 'from-[#1e295d] to-[#111632]',
         borderColor: 'border-[#33437e]',
-        features: ['Écoute illimitée sans publicités', 'Qualité audio haute fidélité (320 kbps)', 'Accès aux fonctionnalités Artiste & Distribution']
+        features: [
+            '10 albums',
+            '50 tracks',
+        ]
     },
     vip: {
         name: 'Plan VIP',
@@ -42,7 +48,10 @@ const plans: Record<string, any> = {
         icon: Crown,
         color: 'from-[#3a1c5c] to-[#1a0b2e]',
         borderColor: 'border-[#6328a0]',
-        features: ['Tous les avantages du plan Premium', 'Badge VIP exclusif sur votre profil', 'Support prioritaire 24/7 & Événements privés']
+        features: [
+            'Albums illimités',
+            'Tracks illimités',
+        ]
     }
 }
 
