@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laravel\Cashier\Billable;
 
-
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -46,9 +45,9 @@ class User extends Authenticatable
     ];
 
     protected $hidden =[
-        'password', 
-        'two_factor_secret', 
-        'two_factor_recovery_codes', 
+        'password',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
         'remember_token'
     ];
 
@@ -80,5 +79,69 @@ class User extends Authenticatable
     public function purchases(): HasMany
     {
         return $this->hasMany(Purchase::class);
+    }
+
+    /**
+     * 🛡️ Sécurité : Récupère le type de plan actif de l'utilisateur
+     */
+    public function getActivePlanName(): string
+    {
+        $activeSubscription = $this->subscriptions()
+            ->where('stripe_status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('ends_at')
+                  ->orWhere('ends_at', '>', now());
+            })
+            ->first();
+
+        // Si aucun abonnement stripe n'est actif, l'utilisateur possède le plan 'basic' (Free)
+        return $activeSubscription ? strtolower($activeSubscription->type) : 'basic';
+    }
+
+    /**
+     * 🛡️ Sécurité : Vérifie si l'utilisateur peut créer un album selon ses quotas
+     */
+    public function canCreateAlbum(): bool
+    {
+        $plan = $this->getActivePlanName();
+
+        if ($plan === 'vip') {
+            return true; // Version illimitée
+        }
+
+        $limits = [
+            'basic'   => 1,
+            'premium' => 10,
+        ];
+
+        $maxAlbums = $limits[$plan] ?? 1;
+        $currentAlbumsCount = $this->artist ? $this->artist->albums()->count() : 0;
+
+        return $currentAlbumsCount < $maxAlbums;
+    }
+
+    /**
+     * 🛡️ Sécurité : Vérifie si l'utilisateur peut créer un track (morceau) selon ses quotas
+     */
+    public function canCreateTrack(): bool
+    {
+        $plan = $this->getActivePlanName();
+
+        if ($plan === 'vip') {
+            return true; // Version illimitée
+        }
+
+        $limits = [
+            'basic'   => 5,
+            'premium' => 50,
+        ];
+
+        $maxTracks = $limits[$plan] ?? 5;
+
+        // Compte tous les morceaux reliés à l'artiste (soit directement via une relation tracks,
+        // soit à travers ses albums)
+        $currentTracksCount = $this->artist ? $this->artist->tracks()->count() : 0;
+
+        return $currentTracksCount < $maxTracks;
     }
 }

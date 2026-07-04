@@ -9,10 +9,24 @@ use App\Models\Artist;
 use App\Models\GenreTrack;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class TrackController extends Controller
 {
+    private function isSubscriptionActive($user)
+    {
+        if (!$user) return false;
+
+        return $user->subscriptions()
+            ->where('stripe_status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('ends_at')
+                  ->orWhere('ends_at', '>', now());
+            })
+            ->exists();
+    }
+
     public function index()
     {
         $tracks = Track::with(['album.artist.user', 'genres'])->get();
@@ -25,124 +39,84 @@ class TrackController extends Controller
 
     public function create()
     {
-        // $genres = [
-        //     'Pop', 'Rock', 'Hip-Hop / Rap', 'R&B / Soul', 'Electronic / EDM',
-        //     'Dance / Club', 'Reggae', 'Reggaeton / Urban', 'Afrobeats', 'Amapiano',
-        //     'Jazz', 'Blues', 'Classical', 'Country', 'Folk / Acoustic',
-        //     'Metal', 'Punk', 'Alternative', 'Indie', 'Gospel / Christian',
-        //     'Funk / Disco', 'Latin', 'Salsa', 'Bachata', 'K-Pop',
-        //     'J-Pop', 'Trap', 'Drill', 'Boom Bap', 'Lo-Fi',
-        //     'House', 'Techno', 'Trance', 'Dubstep', 'Drum & Bass',
-        //     'Ambient', 'Synthwave', 'Ska', 'Gothic', 'Grime',
-        //     'Dancehall', 'Zouk', 'Kizomba', 'Sega / Maloya', 'Coupe-Decale',
-        //     'Makossa', 'Highlife', 'Bossa Nova', 'Flamenco', 'Cinematic'
-        // ];
+        $user = Auth::user();
+        $artist = $user?->artist;
 
-        // foreach ($genres as $genreName) {
-        //     Genre::updateOrCreate(
-        //         ['slug' => Str::slug($genreName)],
-        //         ['name' => $genreName]
-        //     );
-        // }
-        $albums = Album::select('id', 'title')->get();
+        // Seuls les albums créés par cet artiste spécifique doivent lui être proposés
+        $albums = $artist ? Album::where('artist_id', $artist->id)->select('id', 'title')->get() : [];
         $genres = Genre::select('id', 'name')->get();
+
         return Inertia::render('music/tracks/Create', [
-            'albums' => $albums,
-            'genres' => $genres,
+            'albums'         => $albums,
+            'genres'         => $genres,
+            'isArtist'       => !is_null($artist) && $artist->status === 'approved',
+            'canCreateTrack' => $user ? $user->canCreateTrack() : false,
         ]);
     }
 
     public function store(Request $request)
-{
-    // 1. Validation des champs textuels
-    $request->validate([
-        'genre_id' => 'required|exists:genres,id',
-        'album_id' => 'required|exists:albums,id',
-        'title'    => 'required|string|max:255',
-        'duration' => 'nullable|integer',
-        'is_free'  => 'required|boolean',
-    ]);
+    {
+        $user = Auth::user();
+        $artist = $user?->artist;
 
-    // 2. Vérification manuelle du fichier
-    if (!$request->hasFile('audio_file') || !$request->file('audio_file')->isValid()) {
-        return redirect()->back()->withErrors([
-            'audio_file' => 'Le fichier est manquant ou invalide.'
+        // Sécurité 1 : Est-ce un artiste approuvé ?
+        if (!$artist || $artist->status !== 'approved') {
+            return redirect()->back()->withErrors(['error' => 'Vous devez disposer d\'un compte artiste approuvé pour ajouter des morceaux.']);
+        }
+
+        // Sécurité 2 : L'abonnement est-il actif ?
+        if (!$this->isSubscriptionActive($user)) {
+            return redirect()->back()->withErrors(['error' => 'Votre abonnement a expiré. Veuillez le renouveler.']);
+        }
+
+        // 🔥 Sécurité 3 : Contrôle de quota dynamique (Basic: 5, Premium: 50, VIP: Illimité)
+        if (!$user->canCreateTrack()) {
+            return redirect()->back()->withErrors([
+                'error' => 'Action refusée : Limite maximale de morceaux atteinte pour votre forfait actuel.'
+            ]);
+        }
+
+        $request->validate([
+            'genre_id' => 'required|exists:genres,id',
+            'album_id' => 'required|exists:albums,id',
+            'title'    => 'required|string|max:255',
+            'duration' => 'nullable|integer',
+            'is_free'  => 'required|boolean',
         ]);
+
+        // Sécurité 4 : S'assurer que l'album sélectionné appartient bien à cet artiste
+        $albumOwnership = Album::where('id', $request->album_id)->where('artist_id', $artist->id)->exists();
+        if (!$albumOwnership) {
+            return redirect()->back()->withErrors(['album_id' => 'L\'album sélectionné ne vous appartient pas.']);
+        }
+
+        if (!$request->hasFile('audio_file') || !$request->file('audio_file')->isValid()) {
+            return redirect()->back()->withErrors([
+                'audio_file' => 'Le fichier est manquant ou invalide.'
+            ]);
+        }
+
+        $data = [
+            'album_id' => $request->album_id,
+            'title'    => $request->title,
+            'duration' => $request->input('duration') ?? 0,
+            'is_free'  => $request->boolean('is_free'),
+            'slug'     => Str::slug($request->title) . '-' . uniqid(),
+        ];
+
+        $file = $request->file('audio_file');
+        $fileName = uniqid() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('tracks', $fileName, 'public');
+
+        $data['file_path'] = $path;
+
+        $track = Track::create($data);
+
+        GenreTrack::create([
+            "genre_id" => (int) $request->genre_id,
+            "track_id" => $track->id
+        ]);
+
+        return redirect()->back()->with('success', 'La musique a été ajoutée avec succès !');
     }
-
-    // 3. Préparation des données pour la base de données
-    $data = [
-        'album_id' => $request->album_id,
-        'title'    => $request->title,
-        'duration' => $request->input('duration') ?? 0,
-        'is_free'  => $request->boolean('is_free'),
-        'slug'     => Str::slug($request->title) . '-' . uniqid(),
-    ];
-
-
-    // 4. RÉSOLUTION DU PROBLÈME .BIN : On force la conservation de l'extension d'origine
-    $file = $request->file('audio_file');
-
-    // On génère un nom unique tout en gardant la bonne extension (ex: 65f3a2b1c4d5e.mp3)
-    $fileName = uniqid() . '.' . $file->getClientOriginalExtension();
-
-    // On utilise storeAs au lieu de store pour imposer notre nom de fichier
-    $path = $file->storeAs('tracks', $fileName, 'public');
-
-    $data['file_path'] = $path;
-
-    // 5. Création en base de données
-    $track = Track::create($data);
-    // ID du track
-    $trackId = $track->id;
-    $data['genre_id'] = (int) $request->genre_id;
-
-    GenreTrack::create([
-        "genre_id" => $data['genre_id'],
-        "track_id" => $trackId
-    ]);
-
-    return redirect()->back()->with('success', 'La musique a été ajoutée avec succès !');
-}
-
-
-
-//     public function store(Request $request)
-// {
-//     // 1. Validation de tous les champs SANS le fichier pour éviter le blocage automatique
-//     $request->validate([
-//         'album_id' => 'required|exists:albums,id',
-//         'title'    => 'required|string|max:255',
-//         'duration' => 'nullable|integer',
-//         'is_free'  => 'required|boolean',
-//     ]);
-
-//     // 2. Vérification manuelle du fichier pour renvoyer une erreur personnalisée si Laragon bloque
-//     if (!$request->hasFile('audio_file') || !$request->file('audio_file')->isValid()) {
-//         return redirect()->back()->withErrors([
-//             'audio_file' => 'Le fichier est manquant ou dépasse les capacités actuelles du serveur Laragon.'
-//         ]);
-//     }
-
-//     // 3. Préparation des données si le fichier est valide
-//     $data = [
-//         'album_id' => $request->album_id,
-//         'title'    => $request->title,
-//         'duration' => $request->input('duration') ?? 0,
-//         'is_free'  => $request->boolean('is_free'),
-//         'slug'     => \Illuminate\Support\Str::slug($request->title) . '-' . uniqid(),
-//     ];
-
-//     // 4. Stockage du fichier
-//     $path = $request->file('audio_file')->store('tracks', 'public');
-//     $data['file_path'] = $path;
-
-//     // 5. Création en base de données
-//     \App\Models\Track::create($data);
-
-//     return redirect()->back()->with('success', 'La musique a été ajoutée avec succès !');
-// }
-
-
-
 }
