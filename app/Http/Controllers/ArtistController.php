@@ -9,9 +9,6 @@ use Inertia\Inertia;
 
 class ArtistController extends Controller
 {
-    /**
-     * Helper réutilisable pour vérifier l'abonnement actif de l'utilisateur
-     */
     private function checkActiveSubscription($user)
     {
         if (!$user) return false;
@@ -30,7 +27,6 @@ class ArtistController extends Controller
         $user = Auth::user();
         $search = $request->input('search');
 
-        // Utilisation du helper pour la cohérence
         $isSubscriptionActive = $this->checkActiveSubscription($user);
 
         $artists = Artist::with('user')
@@ -52,13 +48,11 @@ class ArtistController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Si l'abonnement n'est pas actif -> Redirection paiement
         if (!$this->checkActiveSubscription($user)) {
             return redirect()->route('subscription.index')
-                ->with('error', 'Votre abonnement a expiré. Veuillez le renouveler pour accéder à vos fonctionnalités.');
+                ->with('error', 'Votre abonnement a expiré. Veuillez le renouveler.');
         }
 
-        // 2. Si le profil existe déjà, on gère selon le statut (Pas de réécriture du formulaire !)
         if ($user->artist) {
             if ($user->artist->status === 'pending') {
                 return redirect()->route('subscription.pending');
@@ -69,12 +63,11 @@ class ArtistController extends Controller
             }
 
             if ($user->artist->status === 'approved') {
-                return redirect()->route('artists.index')
+                return redirect('/artistes')
                     ->with('info', 'Vous avez déjà un profil artiste actif.');
             }
         }
 
-        // 3. Premier abonnement sans profil -> Formulaire initial
         return Inertia::render('music/artiste/Create');
     }
 
@@ -82,13 +75,12 @@ class ArtistController extends Controller
     {
         $user = Auth::user();
 
-        // Sécurisation stricte de l'abonnement (même logique partout)
         if (!$this->checkActiveSubscription($user)) {
             return redirect()->route('subscription.index')
                 ->with('error', 'Action non autorisée. Veuillez souscrire à un forfait.');
         }
 
-        // CORRECTION VALIDATION : L'image est requise UNIQUEMENT si l'artiste n'a pas encore de profil
+        // 🔥 CORRECTION VALIDATION : Utilisation correcte de $user->artist
         $rules = [
             'surname'     => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -97,30 +89,27 @@ class ArtistController extends Controller
 
         $request->validate($rules);
 
-        // Gestion de l'image (si une nouvelle image est téléversée)
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('artists', 'public');
             $user->update(['pdp' => $imagePath]);
         }
 
-        // Sauvegarde ou Mise à jour
         if ($user->artist) {
             $user->artist->update([
                 'surname'     => $request->surname,
                 'description' => $request->description,
-                // On s'assure que le statut reste approved s'il met à jour
-                'status'      => 'approved',
+                'status'      => 'pending',
             ]);
         } else {
             Artist::create([
                 'user_id'     => $user->id,
                 'surname'     => $request->surname,
                 'description' => $request->description,
-                'status'      => 'approved', // Devient directement approuvé après paiement initial
+                'status'      => 'pending',
             ]);
         }
 
-        return redirect('/artistes')
-            ->with('success', 'Votre profil artiste a été configuré avec succès !');
+        return redirect()->route('subscription.pending')
+            ->with('success', 'Profil soumis ! En attente de validation administrative.');
     }
 }

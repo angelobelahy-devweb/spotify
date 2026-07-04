@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\Route;
 Route::controller(MusicController::class)->group(function () {
     Route::get('/albums', 'album');
     Route::get('/albums/detail/{slug}', 'detail');
-    Route::get('/artistes', 'artiste');
+    // ❌ SUPPRIMÉ : Route::get('/artistes', 'artiste'); <- Faisait doublon et écrasait ArtistController !
     Route::get('/favories', 'favorie')->middleware('auth');
 });
+
 Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->middleware('auth');
 
 Route::get('/tracks', [TrackController::class, 'index'])->name('tracks.index');

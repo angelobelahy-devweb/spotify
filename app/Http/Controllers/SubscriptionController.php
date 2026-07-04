@@ -22,6 +22,13 @@ class SubscriptionController extends Controller
             return redirect()->back()->withErrors(['error' => 'Utilisateur non connecté']);
         }
 
+        // 🔥 CORRECTION CRITIQUE : Si l'utilisateur tente de se réabonner après un rejet administratif,
+        // on supprime l'ancien enregistrement rejeté afin de débloquer son accès futur au formulaire.
+        if ($user->artist && $user->artist->status === 'rejected') {
+            DB::table('artists')->where('user_id', $user->id)->delete();
+            $user->refresh(); // Force la mise à jour de la relation en cache
+        }
+
         if ($user->stripe_id) {
             DB::table('users')->where('id', $user->id)->update([
                 'stripe_id' => null,
@@ -95,15 +102,9 @@ class SubscriptionController extends Controller
         $user->pm_type = $plan;
         $user->save();
 
-        $user->artist()->updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'status'  => 'pending',
-                'surname' => $user->name,
-            ]
-        );
-
-        return redirect()->route('subscription.pending');
+        return Inertia::render('subscription/Accepted', [
+            'plan' => $plan
+        ]);
     }
 
     public function pending()
@@ -111,7 +112,7 @@ class SubscriptionController extends Controller
         $user = Auth::user();
 
         if ($user->artist && $user->artist->status === 'approved') {
-            return redirect()->route('artists.create');
+            return redirect('/artistes')->with('success', 'Votre compte artiste est désormais actif !');
         }
 
         if ($user->artist && $user->artist->status === 'rejected') {
@@ -125,7 +126,6 @@ class SubscriptionController extends Controller
     {
         $user = Auth::user();
 
-        // If they somehow land here without being rejected, redirect appropriately
         if (!$user->artist || $user->artist->status !== 'rejected') {
             return redirect()->route('subscription.index');
         }
