@@ -27,7 +27,7 @@ const checkStatus = () => {
 
             <!-- Textes -->
             <div class="space-y-2">
-                <h1 class="text-2xl font-black text-amber-400">Paiement reçu ! Validation en cours...</h1>
+                <h1 class="text-2xl font-black text-amber-400">Information reçu ! Validation en cours...</h1>
                 <p class="text-sm text-gray-400 leading-relaxed">
                     Votre abonnement a été traité avec succès. Pour des raisons de sécurité et de conformité, notre équipe administrative vérifie actuellement votre éligibilité au statut d'artiste.
                 </p>

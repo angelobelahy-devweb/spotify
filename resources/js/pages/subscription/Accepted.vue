@@ -40,7 +40,6 @@ const planDetails = computed(() => {
 
             <div class="space-y-2">
                 <p class="text-xs uppercase tracking-[0.3em] text-emerald-400 font-semibold">Paiement Réussi</p>
-                <h1 class="text-3xl font-black text-white">Abonnement Validé !</h1>
                 <p class="text-sm text-gray-400 max-w-sm mx-auto">
                     Votre transaction a été approuvée par Stripe. Votre espace créateur est prêt à être configuré.
                 </p>
