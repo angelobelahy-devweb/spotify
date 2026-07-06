@@ -9,12 +9,14 @@ const toast = useToast()
 const page = usePage()
 const error = computed(() => usePage().props.flash?.error)
 
-const selectedPlan = ref('premium')
-const currentPlan = computed(() => String(page.props.auth?.user?.plan || 'basic').toLowerCase())
+// 🔥 CORRECTION 1 : On initialise la sélection visuelle par défaut sur 'free'
+const selectedPlan = ref('free')
+const currentPlan = computed(() => String(page.props.auth?.user?.plan || 'free').toLowerCase())
 const isArtistEligible = computed(() => ['premium', 'vip'].includes(currentPlan.value))
 
 const plans: Record<string, any> = {
-    basic: {
+    // 🔥 CORRECTION 2 : Utilisation stricte de la clé 'free' (harmonisée avec le contrôleur PHP)
+    free: {
         name: 'Plan Free',
         price: '0 €',
         period: 'Gratuit',
@@ -55,20 +57,18 @@ const plans: Record<string, any> = {
     }
 }
 
+// 🔥 CORRECTION 3 : Le formulaire doit envoyer 'free' par défaut (au lieu de 'premium')
 const form = useForm({
-    plan: 'premium'
+    plan: 'free'
 })
 
 const selectPlan = (planKey: string) => {
     selectedPlan.value = planKey
-    form.plan = planKey
+    form.plan = planKey // Transmet correctement la clé ('free', 'premium', ou 'vip') au formulaire
 }
 
 const submit = () => {
-    if (form.plan === 'basic') {
-        toast.add({ severity: 'info', summary: 'Plan Free', detail: 'Vous possédez déjà le plan gratuit.', life: 3000 })
-        return
-    }
+    // Aucune restriction ici, on laisse le SubscriptionController traiter le plan choisi
     form.post('/subscription/checkout')
 }
 </script>

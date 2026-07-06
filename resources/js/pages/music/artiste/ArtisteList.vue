@@ -13,6 +13,7 @@ const props = defineProps({
 })
 
 const page = usePage()
+const userPlan = computed(() => page.props.auth?.user?.pm_type || 'free')
 const artistStatus = computed(() => page.props.auth?.user?.artist?.status || null)
 
 const searchQuery = ref(props.filters?.search || '')
@@ -48,20 +49,38 @@ export default { name: 'ArtisteList' }
             <div class="flex gap-3 items-center flex-wrap">
                 <h1 class="text-[#e4e8f3d0] text-2xl font-bold">Artistes</h1>
 
-                <div
-                    v-if="isArtist && isSubscriptionActive && artistStatus === 'approved'"
-                    class="flex gap-2 items-center bg-[#121212]/80 border-2 border-emerald-600 rounded-full w-[max-content] p-1"
-                >
-                    <div class="bg-emerald-600 p-1 rounded-full flex items-center justify-center w-6 h-6">
-                        <CheckCircle class="w-4 h-4 text-white" />
+                <div v-if="isArtist && isSubscriptionActive && artistStatus === 'approved' && userPlan === 'free'" class="flex gap-4 items-center flex-wrap">
+                    <div class="flex gap-2 items-center bg-[#121212]/80 border-2 border-emerald-600 rounded-full p-1">
+                        <div class="bg-emerald-600 p-1 rounded-full flex items-center justify-center w-6 h-6">
+                            <CheckCircle class="w-4 h-4 text-white" />
+                        </div>
+                        <span class="text-xs text-emerald-400 uppercase pr-1">Artiste (Plan Free)</span>
                     </div>
-                    <span class="text-xs text-emerald-400 uppercase pr-1">Vous êtes artiste certifié</span>
+
+                    <Link
+                        href="/subscription"
+                        class="text-xs bg-[#33437e] hover:bg-[#364a92] text-white font-bold uppercase px-4 py-2 rounded-full transition-all duration-300 shadow-md shadow-[#33437e]/20"
+                    >
+                        Changer de forfait
+                    </Link>
+                </div>
+
+                <div v-else-if="isArtist && isSubscriptionActive && artistStatus === 'approved' && userPlan !== 'free'" class="flex gap-3 items-center flex-wrap">
+                    <div class="flex gap-2 items-center bg-[#121212]/80 border-2 border-emerald-600 rounded-full p-1">
+                        <div class="bg-emerald-600 p-1 rounded-full flex items-center justify-center w-6 h-6">
+                            <CheckCircle class="w-4 h-4 text-white" />
+                        </div>
+                        <span class="text-xs text-emerald-400 uppercase pr-1">Artiste {{ userPlan }} Certifié</span>
+                    </div>
+                    <span class="text-xs text-gray-500 italic bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
+                        Forfait verrouillé pour 1 mois (Engagement en cours)
+                    </span>
                 </div>
 
                 <Link
                     v-else-if="isArtist && artistStatus === 'pending'"
                     href="/subscription/pending"
-                    class="flex gap-2 items-center bg-[#121212]/80 cursor-pointer border-2 border-amber-500 rounded-full w-[max-content] p-1"
+                    class="flex gap-2 items-center bg-[#121212]/80 cursor-pointer border-2 border-amber-500 rounded-full p-1"
                 >
                     <div class="bg-amber-500 p-1 rounded-full flex items-center justify-center w-6 h-6 animate-spin">
                         <Clock class="w-4 h-4 text-white" />
@@ -72,7 +91,7 @@ export default { name: 'ArtisteList' }
                 <Link
                     v-else-if="isArtist && artistStatus === 'rejected'"
                     href="/subscription/rejected"
-                    class="flex gap-2 items-center cursor-pointer bg-[#121212]/80 border-2 border-red-600 rounded-full w-[max-content] p-1 hover:scale-105 transition-all"
+                    class="flex gap-2 items-center cursor-pointer bg-[#121212]/80 border-2 border-red-600 rounded-full p-1 hover:scale-105 transition-all"
                 >
                     <div class="bg-red-600 p-1 rounded-full flex items-center justify-center w-6 h-6">
                         <AlertTriangle class="w-4 h-4 text-white" />
@@ -83,7 +102,7 @@ export default { name: 'ArtisteList' }
                 <Link
                     v-else-if="isArtist && !isSubscriptionActive"
                     href="/subscription"
-                    class="flex gap-2 items-center cursor-pointer bg-[#121212]/80 border-2 border-amber-600 rounded-full w-[max-content] p-1 hover:translate-y-1 transition-all duration-300"
+                    class="flex gap-2 items-center cursor-pointer bg-[#121212]/80 border-2 border-amber-600 rounded-full p-1 hover:translate-y-0.5 transition-all duration-300"
                 >
                     <div class="bg-amber-600 p-1 rounded-full flex items-center justify-center w-6 h-6">
                         <AlertTriangle class="w-4 h-4 text-white" />
@@ -94,9 +113,9 @@ export default { name: 'ArtisteList' }
                 <Link
                     v-else
                     href="/subscription"
-                    class="flex gap-2 items-center bg-[#121212]/80 border-2 border-[#33437e] rounded-full w-[max-content] p-1 hover:translate-y-1 transition-all duration-300"
+                    class="flex gap-2 items-center bg-[#121212]/80 border-2 border-[#33437e] rounded-full p-1 hover:translate-y-0.5 transition-all duration-300"
                 >
-                    <div class="bg-[#33437e] hover:bg-[#364a92] transition-all duration-300 p-1 rounded-full flex items-center justify-center w-6 h-6">
+                    <div class="bg-[#33437e] p-1 rounded-full flex items-center justify-center w-6 h-6">
                         <Plus class="w-4 h-4 text-white" />
                     </div>
                     <span class="text-xs text-white uppercase pr-1">Devenir artiste</span>

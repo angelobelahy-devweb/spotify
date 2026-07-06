@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
-import { CheckCircle, Sparkles, Crown, ArrowRight, ShieldCheck } from 'lucide-vue-next'
+import { CheckCircle, Sparkles, Crown, ArrowRight, ShieldCheck, Music } from 'lucide-vue-next'
 
 const props = defineProps({
     plan: String
 })
 
 const planDetails = computed(() => {
+    // 🔥 1. Prise en charge du Plan VIP
     if (props.plan === 'vip') {
         return {
             name: 'Plan VIP',
@@ -16,6 +17,18 @@ const planDetails = computed(() => {
             description: 'Albums & Tracks illimités',
         }
     }
+
+    // 🔥 2. Prise en charge du Plan Free (Ajouté)
+    if (props.plan === 'free') {
+        return {
+            name: 'Plan Free',
+            icon: Music,
+            color: 'text-gray-400 border-gray-500/30 bg-gray-500/10',
+            description: '1 album et 5 tracks gratuits inclus',
+        }
+    }
+
+    // 🔥 3. Option par défaut : Plan Premium
     return {
         name: 'Plan Premium',
         icon: Sparkles,
@@ -39,9 +52,12 @@ const planDetails = computed(() => {
             </div>
 
             <div class="space-y-2">
-                <p class="text-xs uppercase tracking-[0.3em] text-emerald-400 font-semibold">Paiement Réussi</p>
+                <p class="text-xs uppercase tracking-[0.3em] text-emerald-400 font-semibold">
+                    {{ props.plan === 'free' ? 'Formule Activée' : 'Paiement Réussi' }}
+                </p>
                 <p class="text-sm text-gray-400 max-w-sm mx-auto">
-                    Votre transaction a été approuvée par Stripe. Votre espace créateur est prêt à être configuré.
+                    <span v-if="props.plan === 'free'">Votre espace créateur gratuit a été initialisé avec succès et est prêt à être configuré.</span>
+                    <span v-else>Votre transaction a été approuvée par Stripe. Votre espace créateur est prêt à être configuré.</span>
                 </p>
             </div>
 
@@ -59,7 +75,7 @@ const planDetails = computed(() => {
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full font-medium">
-                    <ShieldCheck class="w-3.5 h-3.5" /> Réglé
+                    <ShieldCheck class="w-3.5 h-3.5" /> {{ props.plan === 'free' ? 'Actif' : 'Réglé' }}
                 </div>
             </div>
 
