@@ -80,7 +80,6 @@ class ArtistController extends Controller
                 ->with('error', 'Action non autorisée. Veuillez souscrire à un forfait.');
         }
 
-        // 🔥 CORRECTION VALIDATION : Utilisation correcte de $user->artist
         $rules = [
             'surname'     => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -111,5 +110,49 @@ class ArtistController extends Controller
 
         return redirect()->route('subscription.pending')
             ->with('success', 'Profil soumis ! En attente de validation administrative.');
+    }
+
+    public function showProfile($slug)
+    {
+        // 1. Récupérer l'artiste via le slug de son utilisateur avec toutes les relations nécessaires
+        $artist = Artist::whereHas('user', function ($query) use ($slug) {
+            $query->where('slug', $slug);
+        })->with([
+            'user',
+            'albums' => function($query) {
+                // Charge les compteurs de relations pour optimiser les performances
+                $query->withCount(['tracks']);
+            },
+            'tracks' => function($query) {
+                // Récupère l'album associé et les commentaires avec l'auteur du commentaire
+                $query->with(['album', 'comments.user']);
+            }
+        ])->firstOrFail();
+
+        // 2. Déterminer le forfait (Tier d'abonnement)
+        $artistUser = $artist->user;
+        $subscription = $artistUser?->subscriptions()
+            ->where('stripe_status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>', now());
+            })
+            ->latest()
+            ->first();
+
+        $artist->subscription_tier = $subscription ? $subscription->type : ($artistUser?->pm_type ?? 'free');
+
+        // 3. Calculer les statistiques globales réelles basées sur la base de données
+        $stats = [
+            'albums_count' => $artist->albums->count(),
+            'tracks_count' => $artist->tracks->count(),
+        ];
+
+        // 4. Envoyer le tout à la vue Inertia
+        return Inertia::render('music/artiste/ArtistProfile', [
+            'artist' => $artist,
+            'albums' => $artist->albums,
+            'tracks' => $artist->tracks,
+            'stats'  => $stats
+        ]);
     }
 }
