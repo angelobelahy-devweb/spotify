@@ -18,6 +18,7 @@ require __DIR__ . '/subscription.php';
 require __DIR__ . '/music.php';
 require __DIR__ . '/artists.php';
 require __DIR__ . '/album.php';
+require __DIR__ . '/subscription.php';
 require __DIR__ . '/Admin/dashboard.php';
 
 require __DIR__ . '/Admin/artist.php';

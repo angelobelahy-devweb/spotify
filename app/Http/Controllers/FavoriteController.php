@@ -33,6 +33,8 @@ class FavoriteController extends Controller
             $isFavorite = true;
         }
 
+        $favoritesCount = $track->favorites()->count();
+
         return response()->json([
             'favorite' => $isFavorite,
             'track' => [
@@ -42,6 +44,7 @@ class FavoriteController extends Controller
                 'file_path' => $track->file_path,
                 'duration' => $track->duration,
                 'image' => $track->album?->image ?? '/assets/images/album.JPG',
+                'favorites_count' => $favoritesCount,
             ],
         ]);
     }

@@ -255,9 +255,15 @@ onMounted(() => {
                     <User class="dropdown-item-icon" />
                     Voir Profil
                   </Link>
+<<<<<<< HEAD
 
                   <Link
                     href="/settings"
+=======
+                  
+                  <Link 
+                    href="/settings/profile" 
+>>>>>>> 843a7c97820624139a30702030683a88835c2f76
                     class="dropdown-item"
                   >
                     <Settings class="dropdown-item-icon" />

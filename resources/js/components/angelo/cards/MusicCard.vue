@@ -1,12 +1,13 @@
 <script setup>
 import { Album, MessageCircle } from 'lucide-vue-next'
 import { Link, usePage } from '@inertiajs/vue3'
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Play, Pause, HeartIcon } from 'lucide-vue-next';
 import { playerStore } from '@/lib/playerStore';
 import { openAuthModal } from '@/lib/authModalStore';
 
 const props = defineProps({
+    id: Number,
     title: String,
     artist: String,
     image: String,
@@ -15,6 +16,7 @@ const props = defineProps({
     comment: String,
     duration: String,
     file_path: String,
+    favorites_count: Number,
 })
 
 
@@ -26,7 +28,7 @@ const page = usePage();
 const isLoggedIn = computed(() => Boolean(page.props.auth.user));
 
 const trackData = computed(() => ({
-  id: props.id,
+  id: props.id ?? null,
   title: props.title,
   artist: props.artist,
   image: props.image,
@@ -37,6 +39,8 @@ const isCurrentTrackPlaying = computed(
   () => playerStore.currentTrack?.file_path === props.file_path && playerStore.isPlaying
 );
 
+const localFavoritesCount = ref(props.favorites_count ?? 0);
+const favoritePulse = ref(false);
 const isFavorite = computed(() => playerStore.isFavorite(trackData.value));
 
 const getCsrfTokenFromCookie = () => {
@@ -94,6 +98,11 @@ const toggleFavorite = async (event) => {
 
     const data = await response.json();
     updateLocalFavorite(data.track, data.favorite);
+    localFavoritesCount.value = data.track.favorites_count ?? localFavoritesCount.value + (data.favorite ? 1 : -1);
+    favoritePulse.value = true;
+    setTimeout(() => {
+      favoritePulse.value = false;
+    }, 350);
   } catch (error) {
     console.error(error);
   }
@@ -156,18 +165,23 @@ const handlePlayTrack = (event) => {
         </div>
         <!-- Heart -->
         <div class="w-full flex justify-between items-center">
-            <button
-                class="
-                text-gray-400
-                hover:text-[#fae311]
-                transition-all
-                mt-2
-                cursor-pointer
-                "
-            >
-                <HeartIcon class="fill-gray-400 text-gray-400 hover:text-[#fae311] hover:fill-[#fae311] w-5 h-5" />
-            </button>
-            <span class="text-gray-400">{{ duration }}</span>
+            <div class="flex items-center gap-2">
+              <button
+                @click.stop="toggleFavorite"
+                :class="[
+                  'transition-transform duration-200 mt-2 cursor-pointer',
+                  isFavorite ? 'text-[#fae311]' : 'text-gray-400 hover:text-[#fae311]',
+                  favoritePulse ? 'scale-110' : ''
+                ]"
+              >
+                <HeartIcon :class="[
+                  isFavorite ? 'fill-[#fae311]' : 'fill-gray-400',
+                  'w-5 h-5'
+                ]" />
+              </button>
+              <span class="text-gray-400 text-xs mt-2">{{ localFavoritesCount }}</span>
+              <span class="text-gray-400">{{ duration }}</span>
+            </div>
         </div>
         <div class="flex justify-center w-full text-gray-400 items-center gap-1">
             <Album class="w-3 h-3" /><span class="text-center  text-[10px]">{{ album }}</span>

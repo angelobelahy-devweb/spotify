@@ -75,7 +75,7 @@ class AlbumController extends Controller
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
             'release_year' => 'required|date',
-            'image'        => 'required|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'image'        => 'required|image|mimes:jpeg,jpg,png,webp|max:6144',
             'is_free'      => 'required|boolean',
             'price'        => 'nullable|required_if:is_free,false|numeric|min:0',
         ]);
