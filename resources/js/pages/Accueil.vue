@@ -4,7 +4,8 @@ import MusicCard from '@/components/angelo/cards/MusicCard.vue';
 import { Inbox, Hourglass, ArrowUp, Facebook, Youtube, Linkedin, Instagram, Music, Search, X, ArrowLeft, ArrowRight } from 'lucide-vue-next';
 import { ref, computed, watch, nextTick } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import logo from '@/assets/images/jbl.png';
+import { playerStore } from '@/lib/playerStore';
+import logo from '@/assets/images/font-pers.png';
 
 // Import Swiper
 import { Swiper, SwiperSlide } from 'swiper/vue';
@@ -27,18 +28,7 @@ const form = ref({
     consent: false
 });
 
-const submitForm = () => {
-    console.log('Formulaire soumis :', form.value);
-    alert('✅ Votre message a été envoyé avec succès !');
-    form.value = {
-        firstName: '',
-        lastName: '',
-        email: '',
-        subject: '',
-        message: '',
-        consent: false
-    };
-};
+
 
 // ========== FILTRES ==========
 const selectedGenre = ref('all');
@@ -48,51 +38,92 @@ const searchInputRef = ref(null);
 // Tracks filtrées
 const filteredTracks = computed(() => {
   if (!props.tracks) return [];
-  
+
   let result = props.tracks;
-  
+
   // Filtre par genre
   if (selectedGenre.value !== 'all') {
-    result = result.filter(track => 
+    result = result.filter(track =>
       track.genres?.some(genre => String(genre.id) === String(selectedGenre.value))
     );
   }
-  
+
   // Filtre par recherche
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase().trim();
-    result = result.filter(track => 
+    result = result.filter(track =>
       track.title.toLowerCase().includes(query) ||
       track.album?.artist?.surname?.toLowerCase().includes(query) ||
       track.album?.title?.toLowerCase().includes(query)
     );
   }
-  
+
   return result;
+});
+
+const getTopGenreIds = (tracks, limit = 3) => {
+  const genreCounts = tracks.reduce((acc, track) => {
+    track.genres?.forEach((genre) => {
+      const id = String(genre.id);
+      acc[id] = (acc[id] || 0) + 1;
+    });
+    return acc;
+  }, {});
+
+  return Object.entries(genreCounts)
+    .sort(([, aCount], [, bCount]) => bCount - aCount)
+    .slice(0, limit)
+    .map(([genreId]) => genreId);
+};
+
+const nouveautes = computed(() => {
+  if (!props.tracks) return [];
+  return [...filteredTracks.value]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 10);
+});
+
+const populaires = computed(() => {
+  if (!props.tracks) return [];
+  return [...filteredTracks.value]
+    .sort((a, b) => (b.favorites_count || 0) - (a.favorites_count || 0))
+    .slice(0, 10);
+});
+
+const suggestions = computed(() => {
+  if (!props.tracks) return [];
+
+  const excludedIds = new Set([
+    ...nouveautes.value.map((track) => track.id),
+    ...populaires.value.map((track) => track.id),
+  ]);
+
+  const remaining = filteredTracks.value.filter((track) => !excludedIds.has(track.id));
+  const topGenreIds = getTopGenreIds(filteredTracks.value, 3);
+
+  const byGenre = remaining.filter((track) =>
+    track.genres?.some((genre) => topGenreIds.includes(String(genre.id)))
+  );
+
+  const fallback = remaining.filter((track) => !byGenre.includes(track));
+
+  return [...byGenre.slice(0, 10), ...fallback.slice(0, 10)].slice(0, 10);
 });
 
 const filteredCount = computed(() => filteredTracks.value.length);
 
-// ========== CONFIGURATION SWIPER ==========
-const swiperConfig = computed(() => {
-  const totalItems = filteredTracks.value.length;
-  
-  if (totalItems <= 1) {
-    return {
-      slidesPerView: 1,
-      spaceBetween: 10,
-      navigation: false,
-      modules: [],
-      slidesPerGroup: 1,
-    };
-  }
-  
-  return {
+const handlePlayTrack = (track, playlist = []) => {
+  if (!track) return;
+  playerStore.play(track, playlist);
+};
+
+const getSwiperConfig = (sectionName, totalItems) => {
+  const baseConfig = {
     modules: [Navigation],
     navigation: {
       enabled: totalItems > 3,
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev',
+      nextEl: `.swiper-button-next-${sectionName}`,
+      prevEl: `.swiper-button-prev-${sectionName}`,
     },
     slidesPerView: 'auto',
     spaceBetween: 16,
@@ -132,7 +163,22 @@ const swiperConfig = computed(() => {
       },
     },
   };
-});
+
+  if (totalItems <= 1) {
+    return {
+      ...baseConfig,
+      slidesPerView: 1,
+      spaceBetween: 10,
+      navigation: {
+        enabled: false,
+        nextEl: `.swiper-button-next-${sectionName}`,
+        prevEl: `.swiper-button-prev-${sectionName}`,
+      },
+    };
+  }
+
+  return baseConfig;
+};
 
 const swiperKey = ref(0);
 
@@ -179,9 +225,9 @@ const clearSearch = () => {
       </div>
 
       <div class="relative z-10 max-w-5xl mx-auto text-center">
-        <div class="absolute top-0 right-0 w-10">
+        <div class="absolute top-0 right-0 w-20">
           <Link href="/" class="flex items-center gap-2 text-white font-bold text-xl tracking-tight hover:text-primary transition duration-200">
-            <img :src="logo" alt="logo" class="w-8">
+            <img :src="logo" alt="logo" class="w-[40px]">
           </Link>
         </div>
 
@@ -228,8 +274,8 @@ const clearSearch = () => {
       <div class="flex flex-wrap gap-4 items-center mb-4">
         <!-- Filtre genre -->
         <div class="relative">
-          <select 
-            v-model="selectedGenre" 
+          <select
+            v-model="selectedGenre"
             class="select select-[#33437e] cursor-pointer bg-[#33437e] select-sm outline-none border-none"
           >
             <option value="all" class="bg-[#33437e]">Tous les genres</option>
@@ -243,14 +289,14 @@ const clearSearch = () => {
         <div class="relative flex-1 min-w-[200px]">
           <div class="relative">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
+            <input
               ref="searchInputRef"
               v-model="searchQuery"
               type="text"
               placeholder="Rechercher un titre, un artiste ou un album..."
               class="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-10 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#33437e] focus:ring-2 focus:ring-[#33437e]/30 transition"
             />
-            <button 
+            <button
               v-if="searchQuery"
               @click="clearSearch"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
@@ -267,36 +313,40 @@ const clearSearch = () => {
       </div>
 
       <!-- ========== SECTION NOUVEAUTÉ ========== -->
-      <h1 class="text-[#e4e8f3d0] text-2xl my-4 font-semibold">Nouveauté</h1>
+      <h1 class="text-[#e4e8f3d0] text-2xl my-4 font-semibold">Nouveauté <span class="text-sm text-gray-400">({{ nouveautes.length }})</span></h1>
       <div class="w-full p-2">
         <!-- 0 résultat -->
-        <div v-if="filteredTracks.length === 0" class="text-center py-12">
+        <div v-if="nouveautes.length === 0" class="text-center py-12">
           <Music class="w-16 h-16 text-gray-500 mx-auto mb-4" />
           <p class="text-gray-400 text-lg">Aucune musique trouvée</p>
           <p class="text-gray-500 text-sm">Essayez de modifier votre recherche ou votre filtre</p>
         </div>
 
         <!-- 1 item -->
-        <div v-else-if="filteredTracks.length === 1" class="flex justify-center">
+        <div v-else-if="nouveautes.length === 1" class="flex justify-center">
           <div class="w-full max-w-xs">
             <MusicCard
-              :title="filteredTracks[0].title"
-              :artist="filteredTracks[0].album.artist.surname"
-              :duration="formatDuration(filteredTracks[0].duration)"
-              :album="filteredTracks[0].album.title"
-              :genre="filteredTracks[0].genres?.[0]?.name ?? 'N/A'"
-              :comment="`/comment/${filteredTracks[0].slug}`"
-              :image="`/storage/${filteredTracks[0].album.image}`"
+              :id="nouveautes[0].id"
+              :favorites_count="nouveautes[0].favorites_count"
+              :title="nouveautes[0].title"
+              :artist="nouveautes[0].album.artist.surname"
+              :duration="formatDuration(nouveautes[0].duration)"
+              :album="nouveautes[0].album.title"
+              :genre="nouveautes[0].genres?.[0]?.name ?? 'N/A'"
+              :comment="`/comment/${nouveautes[0].slug}`"
+              :image="`/storage/${nouveautes[0].album.image}`"
               class="w-full"
             />
           </div>
         </div>
 
         <!-- 2 items -->
-        <div v-else-if="filteredTracks.length === 2" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+        <div v-else-if="nouveautes.length === 2" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
           <MusicCard
-            v-for="track in filteredTracks"
+            v-for="track in nouveautes"
             :key="track.id"
+            :id="track.id"
+            :favorites_count="track.favorites_count"
             :title="track.title"
             :artist="track.album.artist.surname"
             :duration="formatDuration(track.duration)"
@@ -311,13 +361,13 @@ const clearSearch = () => {
         <!-- 3+ items - Swiper -->
         <div v-else class="swiper-wrapper-container">
           <div class="relative swiper-container">
-            <Swiper 
-              :key="swiperKey"
-              v-bind="swiperConfig"
+            <Swiper
+              :key="swiperKey + '-nouveaute'"
+              v-bind="getSwiperConfig('nouveaute', nouveautes.length)"
               class="main-swiper"
             >
-              <SwiperSlide 
-                v-for="track in filteredTracks" 
+              <SwiperSlide
+                v-for="track in nouveautes"
                 :key="track.id"
                 class="swiper-slide-item"
               >
@@ -335,10 +385,10 @@ const clearSearch = () => {
             </Swiper>
 
             <!-- Boutons de navigation -->
-            <button v-if="filteredTracks.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 left-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-prev">
+            <button v-if="nouveautes.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 left-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-prev-nouveaute">
                 <ArrowLeft class="w-5 h-5 text-white" />
             </button>
-            <button v-if="filteredTracks.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 right-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-next">
+            <button v-if="nouveautes.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 right-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-next-nouveaute">
                 <ArrowRight class="w-5 h-5 text-white" />
             </button>
           </div>
@@ -346,31 +396,35 @@ const clearSearch = () => {
       </div>
 
       <!-- ========== SECTION POPULAIRES ========== -->
-      <h1 class="text-[#e4e8f3d0] text-2xl my-4 font-semibold mt-8">Populaires</h1>
+      <h1 class="text-[#e4e8f3d0] text-2xl my-4 font-semibold mt-8">Populaires <span class="text-sm text-gray-400">({{ populaires.length }})</span></h1>
       <div class="w-full p-2">
-        <div v-if="filteredTracks.length === 0" class="text-center py-12">
+        <div v-if="populaires.length === 0" class="text-center py-12">
           <Music class="w-16 h-16 text-gray-500 mx-auto mb-4" />
           <p class="text-gray-400 text-lg">Aucune musique trouvée</p>
           <p class="text-gray-500 text-sm">Essayez de modifier votre recherche ou votre filtre</p>
         </div>
-        <div v-else-if="filteredTracks.length === 1" class="flex justify-center">
+        <div v-else-if="populaires.length === 1" class="flex justify-center">
           <div class="w-full max-w-xs">
             <MusicCard
-              :title="filteredTracks[0].title"
-              :artist="filteredTracks[0].album.artist.surname"
-              :duration="formatDuration(filteredTracks[0].duration)"
-              :album="filteredTracks[0].album.title"
-              :genre="filteredTracks[0].genres?.[0]?.name ?? 'N/A'"
-              :comment="`/comment/${filteredTracks[0].slug}`"
-              :image="`/storage/${filteredTracks[0].album.image}`"
+              :id="populaires[0].id"
+              :favorites_count="populaires[0].favorites_count"
+              :title="populaires[0].title"
+              :artist="populaires[0].album.artist.surname"
+              :duration="formatDuration(populaires[0].duration)"
+              :album="populaires[0].album.title"
+              :genre="populaires[0].genres?.[0]?.name ?? 'N/A'"
+              :comment="`/comment/${populaires[0].slug}`"
+              :image="`/storage/${populaires[0].album.image}`"
               class="w-full"
             />
           </div>
         </div>
-        <div v-else-if="filteredTracks.length === 2" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+        <div v-else-if="populaires.length === 2" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
           <MusicCard
-            v-for="track in filteredTracks"
+            v-for="track in populaires"
             :key="track.id"
+            :id="track.id"
+            :favorites_count="track.favorites_count"
             :title="track.title"
             :artist="track.album.artist.surname"
             :duration="formatDuration(track.duration)"
@@ -383,13 +437,13 @@ const clearSearch = () => {
         </div>
         <div v-else class="swiper-wrapper-container">
           <div class="relative swiper-container">
-            <Swiper 
+            <Swiper
               :key="swiperKey + '-pop'"
-              v-bind="swiperConfig"
+              v-bind="getSwiperConfig('populaires', populaires.length)"
               class="main-swiper"
             >
-              <SwiperSlide 
-                v-for="track in filteredTracks" 
+              <SwiperSlide
+                v-for="track in populaires"
                 :key="track.id"
                 class="swiper-slide-item"
               >
@@ -405,10 +459,10 @@ const clearSearch = () => {
                 />
               </SwiperSlide>
             </Swiper>
-            <button v-if="filteredTracks.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 left-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-prev">
+            <button v-if="populaires.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 left-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-prev-populaires">
                 <ArrowLeft class="w-5 h-5 text-white" />
             </button>
-            <button v-if="filteredTracks.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 right-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-next">
+            <button v-if="populaires.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 right-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-next-populaires">
                 <ArrowRight class="w-5 h-5 text-white" />
             </button>
           </div>
@@ -416,31 +470,35 @@ const clearSearch = () => {
       </div>
 
       <!-- ========== SECTION SUGGESTIONS ========== -->
-      <h1 class="text-[#e4e8f3d0] text-2xl my-4 font-semibold mt-8">Suggestions</h1>
+      <h1 class="text-[#e4e8f3d0] text-2xl my-4 font-semibold mt-8">Suggestions <span class="text-sm text-gray-400">({{ suggestions.length }})</span></h1>
       <div class="w-full p-2">
-        <div v-if="filteredTracks.length === 0" class="text-center py-12">
+        <div v-if="suggestions.length === 0" class="text-center py-12">
           <Music class="w-16 h-16 text-gray-500 mx-auto mb-4" />
           <p class="text-gray-400 text-lg">Aucune musique trouvée</p>
           <p class="text-gray-500 text-sm">Essayez de modifier votre recherche ou votre filtre</p>
         </div>
-        <div v-else-if="filteredTracks.length === 1" class="flex justify-center">
+        <div v-else-if="suggestions.length === 1" class="flex justify-center">
           <div class="w-full max-w-xs">
             <MusicCard
-              :title="filteredTracks[0].title"
-              :artist="filteredTracks[0].album.artist.surname"
-              :duration="formatDuration(filteredTracks[0].duration)"
-              :album="filteredTracks[0].album.title"
-              :genre="filteredTracks[0].genres?.[0]?.name ?? 'N/A'"
-              :comment="`/comment/${filteredTracks[0].slug}`"
-              :image="`/storage/${filteredTracks[0].album.image}`"
+              :id="suggestions[0].id"
+              :favorites_count="suggestions[0].favorites_count"
+              :title="suggestions[0].title"
+              :artist="suggestions[0].album.artist.surname"
+              :duration="formatDuration(suggestions[0].duration)"
+              :album="suggestions[0].album.title"
+              :genre="suggestions[0].genres?.[0]?.name ?? 'N/A'"
+              :comment="`/comment/${suggestions[0].slug}`"
+              :image="`/storage/${suggestions[0].album.image}`"
               class="w-full"
             />
           </div>
         </div>
-        <div v-else-if="filteredTracks.length === 2" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+        <div v-else-if="suggestions.length === 2" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
           <MusicCard
-            v-for="track in filteredTracks"
+            v-for="track in suggestions"
             :key="track.id"
+            :id="track.id"
+            :favorites_count="track.favorites_count"
             :title="track.title"
             :artist="track.album.artist.surname"
             :duration="formatDuration(track.duration)"
@@ -453,13 +511,13 @@ const clearSearch = () => {
         </div>
         <div v-else class="swiper-wrapper-container">
           <div class="relative swiper-container">
-            <Swiper 
+            <Swiper
               :key="swiperKey + '-sug'"
-              v-bind="swiperConfig"
+              v-bind="getSwiperConfig('suggestions', suggestions.length)"
               class="main-swiper"
             >
-              <SwiperSlide 
-                v-for="track in filteredTracks" 
+              <SwiperSlide
+                v-for="track in suggestions"
                 :key="track.id"
                 class="swiper-slide-item"
               >
@@ -475,179 +533,23 @@ const clearSearch = () => {
                 />
               </SwiperSlide>
             </Swiper>
-            <button v-if="filteredTracks.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 left-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-prev">
+            <button v-if="suggestions.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 left-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-prev-suggestions">
                 <ArrowLeft class="w-5 h-5 text-white" />
             </button>
-            <button v-if="filteredTracks.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 right-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-next">
+            <button v-if="suggestions.length > 3" class="bg-[#33437e] p-2 rounded-full absolute top-1/2 right-0 transform -translate-y-1/2 z-10 hover:scale-100 active:scale-90 transition-all cursor-pointer swiper-button-next-suggestions">
                 <ArrowRight class="w-5 h-5 text-white" />
             </button>
           </div>
         </div>
       </div>
 
-      <!-- ========== CONTACT ========== -->
-      <section class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <span class="inline-block bg-[#33437e]/10 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-semibold tracking-wider uppercase border border-[#33437e]/20 mb-4">
-            <i class="fa-regular fa-envelope mr-2 text-[#33437e]"></i> Contactez-nous
-          </span>
-          <h2 class="text-3xl md:text-4xl font-bold">
-            Une question ? <span class="text-[#33437e]">Écrivez-nous</span>
-          </h2>
-          <p class="text-gray-400 mt-2">Notre équipe vous répond dans les plus brefs délais</p>
-        </div>
 
-        <div class="max-w-4xl mx-auto">
-          <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative w-full">
-            <!-- Formulaire -->
-            <div class="lg:col-span-3 bg-black/80 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-white/10">
-              <form @submit.prevent="submitForm" class="space-y-2">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-1.5">
-                      Prénom <span class="text-[#33437e]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      v-model="form.firstName"
-                      placeholder="Jean"
-                      class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#33437e] focus:ring-2 focus:ring-[#33437e]/30 transition"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-1.5">
-                      Nom <span class="text-[#33437e]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      v-model="form.lastName"
-                      placeholder="Dupont"
-                      class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#33437e] focus:ring-2 focus:ring-[#33437e]/30 transition"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-1.5">
-                    Email <span class="text-[#33437e]">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    v-model="form.email"
-                    placeholder="jean.dupont@email.com"
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#33437e] focus:ring-2 focus:ring-[#33437e]/30 transition"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-1.5">
-                    Sujet <span class="text-[#33437e]">*</span>
-                  </label>
-                  <select
-                    v-model="form.subject"
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#33437e] focus:ring-2 focus:ring-[#33437e]/30 transition appearance-none cursor-pointer"
-                    required
-                  >
-                    <option value="" class="bg-[#1a1a2e]">Choisissez un sujet</option>
-                    <option value="question" class="bg-[#1a1a2e]">Question sur l'abonnement</option>
-                    <option value="support" class="bg-[#1a1a2e]">Support technique</option>
-                    <option value="feedback" class="bg-[#1a1a2e]">Feedback / Suggestion</option>
-                    <option value="partnership" class="bg-[#1a1a2e]">Partenariat</option>
-                    <option value="other" class="bg-[#1a1a2e]">Autre</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-1.5">
-                    Message <span class="text-[#33437e]">*</span>
-                  </label>
-                  <textarea
-                    v-model="form.message"
-                    rows="4"
-                    placeholder="Décrivez votre demande en détails..."
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-[#33437e] focus:ring-2 focus:ring-[#33437e]/30 transition resize-none"
-                    required
-                  ></textarea>
-                </div>
-
-                <div class="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    v-model="form.consent"
-                    class="w-4 h-4 bg-white/5 border border-white/20 rounded focus:ring-[#33437e] focus:ring-2 text-[#33437e] cursor-pointer"
-                    required
-                  />
-                  <label class="text-sm text-gray-400">
-                    J'accepte que mes données soient traitées conformément à la
-                    <a href="#" class="text-[#33437e] hover:underline">politique de confidentialité</a>
-                  </label>
-                </div>
-
-                <button
-                  type="submit"
-                  class="w-full bg-[#33437e] hover:bg-[#324588] text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2 shadow-lg shadow-[#33437e]/30 group"
-                >
-                  <i class="fa-regular fa-paper-plane group-hover:translate-x-1 transition"></i>
-                  Envoyer le message
-                </button>
-              </form>
-            </div>
-
-            <div class="lg:col-span-2 space-y-6">
-              <div class="bg-black/80 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <h3 class="font-bold text-lg mb-4">Nous contacter</h3>
-                <div class="space-y-4">
-                  <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-full bg-[#33437e]/20 flex items-center justify-center text-[#33437e] flex-shrink-0 mt-0.5">
-                      <Inbox class="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-400">Email</p>
-                      <p class="text-sm font-medium">contact@spotify-premium.com</p>
-                    </div>
-                  </div>
-                  <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-full bg-[#33437e]/20 flex items-center justify-center text-[#33437e] flex-shrink-0 mt-0.5">
-                      <Hourglass class="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-400">Délai de réponse</p>
-                      <p class="text-sm font-medium">Sous 24 heures</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="bg-black/80 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <h3 class="font-bold text-lg mb-4">Suivez-nous</h3>
-                <div class="flex gap-3">
-                  <a href="#" class="w-10 h-10 rounded-full bg-white/5 hover:bg-[#33437e]/20 border border-white/10 flex items-center justify-center transition">
-                    <Facebook class="w-4 h-4 text-gray-300 hover:text-white" />
-                  </a>
-                  <a href="#" class="w-10 h-10 rounded-full bg-white/5 hover:bg-[#33437e]/20 border border-white/10 flex items-center justify-center transition">
-                    <Linkedin class="w-4 h-4 text-gray-300 hover:text-white" />
-                  </a>
-                  <a href="#" class="w-10 h-10 rounded-full bg-white/5 hover:bg-[#33437e]/20 border border-white/10 flex items-center justify-center transition">
-                    <Youtube class="w-4 h-4 text-gray-300 hover:text-white" />
-                  </a>
-                  <a href="#" class="w-10 h-10 rounded-full bg-white/5 hover:bg-[#33437e]/20 border border-white/10 flex items-center justify-center transition">
-                    <Instagram class="w-4 h-4 text-gray-300 hover:text-white" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <!-- ========== SCROLL TOP ========== -->
       <div class="w-full flex justify-end">
-        <button 
+        <button
           class="cursor-pointer h-10 w-10 rounded-full bg-[#070f2e] p-2 text-[#33437e] backdrop-blur-sm transition hover:bg-[#070f2e]/80"
-          @click="scrollToTop" 
+          @click="scrollToTop"
           aria-label="Retour en haut"
         >
           <ArrowUp class="h-full w-full" />
@@ -746,26 +648,26 @@ const clearSearch = () => {
   .swiper-wrapper-container {
     padding: 0 5px;
   }
-  
+
   .swiper-button-prev,
   .swiper-button-next {
     width: 32px;
     height: 32px;
     font-size: 14px;
   }
-  
+
   .swiper-button-prev {
     left: -5px;
   }
-  
+
   .swiper-button-next {
     right: -5px;
   }
-  
+
   .swiper-slide-item {
     padding: 2px !important;
   }
-  
+
   .music-card-item {
     min-width: 140px;
     max-width: 160px;
