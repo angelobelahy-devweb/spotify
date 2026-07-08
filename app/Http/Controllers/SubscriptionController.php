@@ -23,8 +23,6 @@ class SubscriptionController extends Controller
             return redirect()->back()->withErrors(['error' => 'Utilisateur non connecté']);
         }
 
-        // Si l'utilisateur tente de se réabonner après un rejet administratif,
-        // on supprime l'ancien enregistrement rejeté afin de débloquer son accès.
         if ($user->artist && $user->artist->status === 'rejected') {
             DB::table('artists')->where('user_id', $user->id)->delete();
             $user->refresh();
@@ -40,9 +38,7 @@ class SubscriptionController extends Controller
 
         $plan = $request->input('plan', 'premium');
 
-        // 🔥 FIX 1 : TRAITEMENT DU PLAN GRATUIT (FREE) AVEC REDIRECTION PROPRE
         if ($plan === 'free') {
-            // Nettoyage des anciennes simulations ou abonnements payants existants
             $oldSubscriptionIds = DB::table('subscriptions')
                 ->where('user_id', $user->id)
                 ->pluck('id');
@@ -50,7 +46,6 @@ class SubscriptionController extends Controller
             DB::table('subscription_items')->whereIn('subscription_id', $oldSubscriptionIds)->delete();
             DB::table('subscriptions')->where('user_id', $user->id)->delete();
 
-            // Insérer l'abonnement gratuit simulé en BDD
             $subscriptionId = DB::table('subscriptions')->insertGetId([
                 'user_id'       => $user->id,
                 'type'          => 'free',
@@ -76,22 +71,11 @@ class SubscriptionController extends Controller
             $user->pm_type = 'free';
             $user->save();
 
-            // Activer directement le profil de l'artiste
-            // 🔥 Utilisation stricte de 'approved' pour s'aligner avec tes politiques d'affichage d'albums
-            Artist::updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'surname'     => $user->name,
-                    'status'      => 'approved',
-                    'description' => 'Nouvel artiste (Plan Free).',
-                ]
-            );
+            // 🔥 FIX : ON NE CRÉE PLUS L'ARTISTE ICI EN 'approved' !
 
-            // 🔥 CORRECTIF : On redirige en GET vers handleSuccess pour éviter le crash 405 MethodNotAllowed
             return redirect()->route('subscription.success', ['plan' => 'free']);
         }
 
-        // TRAITEMENT DES PLANS PAYANTS (PREMIUM & VIP)
         $plansPricing = [
             'premium' => 'price_1TmdheRbkDcc1FxK3AhBhh7D',
             'vip'     => 'price_1TmdjLRbkDcc1FxKBoh10sIg',
@@ -108,7 +92,6 @@ class SubscriptionController extends Controller
         return Inertia::location($checkoutSession->url);
     }
 
-    // 🔥 Gère désormais l'affichage final pour TOUS les plans (Free y compris) via une route GET stable
     public function handleSuccess(Request $request)
     {
         $user = Auth::user();
@@ -118,7 +101,6 @@ class SubscriptionController extends Controller
             return redirect()->route('subscription.index')->with('error', 'Session expirée.');
         }
 
-        // Si c'est un plan payant (Stripe), on applique la structure d'abonnement de test
         if ($plan !== 'free') {
             $plansPricing = [
                 'premium' => 'price_1TmdheRbkDcc1FxK3AhBhh7D',
@@ -155,13 +137,7 @@ class SubscriptionController extends Controller
                 'updated_at'      => now(),
             ]);
 
-            Artist::updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'surname' => $user->name,
-                    'status'  => 'approved',
-                ]
-            );
+            // 🔥 FIX : ON NE CRÉE PLUS L'ARTISTE ICI EN 'approved' !
 
             $user->pm_type = $plan;
             $user->save();
@@ -176,7 +152,7 @@ class SubscriptionController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->artist && ($user->artist->status === 'approved' || $user->artist->status === 'validated')) {
+        if ($user->artist && $user->artist->status === 'approved') {
             return redirect('/artistes')->with('success', 'Votre compte artiste est désormais actif !');
         }
 
