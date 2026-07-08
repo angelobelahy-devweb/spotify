@@ -2,21 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Genre;
-use App\Models\Comment;
 use App\Models\Track;
-
-
 
 class AccueilController extends Controller
 {
     //
     public function index()
     {
-        $tracks = Track::with(['album.artist.user', 'genres'])->get();
+            // Role::create(
+            //     ['name' => 'admin']
+            // );
+        $tracks = Track::with(['album.artist.user', 'genres'])
+            ->withCount('favorites')
+            ->orderByDesc('created_at')
+            ->get();
+
         $genres = Genre::select('id', 'name')->get();
+
         return Inertia::render('Accueil', [
             'genres' => $genres,
             'tracks' => $tracks,
