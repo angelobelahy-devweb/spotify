@@ -11,5 +11,5 @@ Route::middleware(['auth'])
         Route::get('/tracks', 'index');
         //Route::get('/albums/{id}/update', 'show');
         //Route::put('/albums/{id}', 'update');
-        //Route::delete('/albums/{id}', 'delete');
+        Route::delete('/tracks/{id}', 'destroy')->name('tracks.destroy');
 });

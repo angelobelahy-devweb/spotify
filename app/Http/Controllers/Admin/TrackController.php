@@ -16,7 +16,7 @@ class TrackController extends Controller
     {
         $per_page = $request->input('per_page', 5);
         $search = $request->input('search');
-        $query = Track::query();
+        $query = Track::with(['album.artist'])->withCount('comments');
 
         if ($search) {
             $query->where('title', 'like', "%{$search}%");
@@ -78,6 +78,19 @@ class TrackController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            // 1. Trouver le morceau ou renvoyer une erreur 404 si introuvable
+            $track = Track::findOrFail($id);
+
+            // 2. Supprimer la ligne de la base de données
+            $track->delete();
+
+            // 3. Rediriger l'utilisateur vers la page précédente avec un message de succès flash
+            return redirect()->back()->with('success', 'Le morceau a été supprimé avec succès !');
+
+        } catch (\Exception $e) {
+            // En cas d'erreur imprévue, renvoyer un message d'erreur flash
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de la suppression.');
+        }
     }
 }

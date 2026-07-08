@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useForm, Link, usePage } from '@inertiajs/vue3'
-// Ajout des icônes Lock, Sparkles, Crown et Music
 import { ArrowLeft, Check, CreditCard, Lock, Sparkles, Crown, Music } from 'lucide-vue-next'
 import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast'
 
 const toast = useToast()
 const page = usePage()
+const error = computed(() => usePage().props.flash?.error)
 
-const selectedPlan = ref('premium')
-const currentPlan = computed(() => String(page.props.auth?.user?.plan || 'basic').toLowerCase())
+// 🔥 CORRECTION 1 : On initialise la sélection visuelle par défaut sur 'free'
+const selectedPlan = ref('free')
+const currentPlan = computed(() => String(page.props.auth?.user?.plan || 'free').toLowerCase())
 const isArtistEligible = computed(() => ['premium', 'vip'].includes(currentPlan.value))
 
-// Propriété "icon" pour afficher dynamiquement les icônes dans la grille
 const plans: Record<string, any> = {
-    basic: {
+    // 🔥 CORRECTION 2 : Utilisation stricte de la clé 'free' (harmonisée avec le contrôleur PHP)
+    free: {
         name: 'Plan Free',
         price: '0 €',
         period: 'Gratuit',
@@ -23,7 +24,10 @@ const plans: Record<string, any> = {
         icon: Music,
         color: 'from-gray-800 to-gray-900',
         borderColor: 'border-gray-700',
-        features: ['Écoute avec publicités', 'Qualité audio standard (160 kbps)', 'Mode écoute uniquement']
+        features: [
+            '1 album gratuit',
+            '5 tracks gratuits',
+        ]
     },
     premium: {
         name: 'Plan Premium',
@@ -33,7 +37,10 @@ const plans: Record<string, any> = {
         icon: Sparkles,
         color: 'from-[#1e295d] to-[#111632]',
         borderColor: 'border-[#33437e]',
-        features: ['Écoute illimitée sans publicités', 'Qualité audio haute fidélité (320 kbps)', 'Accès aux fonctionnalités Artiste & Distribution']
+        features: [
+            '10 albums',
+            '50 tracks',
+        ]
     },
     vip: {
         name: 'Plan VIP',
@@ -43,37 +50,36 @@ const plans: Record<string, any> = {
         icon: Crown,
         color: 'from-[#3a1c5c] to-[#1a0b2e]',
         borderColor: 'border-[#6328a0]',
-        features: ['Tous les avantages du plan Premium', 'Badge VIP exclusif sur votre profil', 'Support prioritaire 24/7 & Événements privés']
+        features: [
+            'Albums illimités',
+            'Tracks illimités',
+        ]
     }
 }
 
-// Initialisé avec le plan sélectionné par défaut ('premium')
+// 🔥 CORRECTION 3 : Le formulaire doit envoyer 'free' par défaut (au lieu de 'premium')
 const form = useForm({
-    plan: 'premium'
+    plan: 'free'
 })
 
 const selectPlan = (planKey: string) => {
     selectedPlan.value = planKey
-    form.plan = planKey
+    form.plan = planKey // Transmet correctement la clé ('free', 'premium', ou 'vip') au formulaire
 }
 
-// 🟢 FUSIONNÉ : On envoie directement la requête POST vers l'action Checkout de Laravel
 const submit = () => {
-    // Si l'utilisateur clique sur le plan gratuit, tu peux adapter la logique ou bloquer l'envoi vers Stripe
-    if (form.plan === 'basic') {
-        toast.add({ severity: 'info', summary: 'Plan Free', detail: 'Vous possédez déjà le plan gratuit.', life: 3000 })
-        return
-    }
-
+    // Aucune restriction ici, on laisse le SubscriptionController traiter le plan choisi
     form.post('/subscription/checkout')
 }
 </script>
 
 <template>
+    <div v-if="error" class="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-400 text-sm text-center">
+        {{ error }}
+    </div>
     <Toast />
 
     <div class="text-white flex flex-col justify-center items-center min-h-[80vh] p-6 space-y-6">
-
         <div class="border border-[#33437e] backdrop-blur-md bg-black/40 w-full p-6 rounded-4xl shadow-2xl space-y-6">
 
             <div class="w-full flex items-center justify-between mb-4">
@@ -143,11 +149,17 @@ const submit = () => {
 
                 <button
                     type="submit"
-                    :disabled="form.processing"
+                    :disabled="form.processing || page.props.auth?.user?.artist?.status === 'pending'"
                     class="bg-[#33437e] hover:bg-[#364a92] active:scale-95 transition-all duration-300 px-6 py-3 rounded-full text-sm font-bold flex items-center justify-center gap-2 w-full cursor-pointer disabled:opacity-50 shadow-lg shadow-[#33437e]/20"
                 >
-                    <span v-if="form.processing" class="flex gap-2 items-center">
+                    <span v-if="form.processing">
                         Connexion...
+                    </span>
+                    <span v-else-if="page.props.auth?.user?.artist?.status === 'pending'">
+                        Profil en cours de vérification administrative...
+                    </span>
+                    <span v-else-if="page.props.auth?.user?.artist?.status === 'rejected'">
+                        Reprendre un abonnement
                     </span>
                     <span v-else>
                         S'abonner à la formule ({{ plans[selectedPlan].name }})

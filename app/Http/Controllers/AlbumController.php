@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Album;
 use App\Models\Artist;
 use Illuminate\Http\Request;
@@ -9,26 +11,67 @@ use Illuminate\Support\Str;
 
 class AlbumController extends Controller
 {
-    // Afficher le formulaire avec la liste des artistes
+    private function isSubscriptionActive($user)
+    {
+        if (!$user) return false;
+
+        return $user->subscriptions()
+            ->where('stripe_status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('ends_at')
+                  ->orWhere('ends_at', '>', now());
+            })
+            ->exists();
+    }
+
     public function create()
     {
-        // On récupère les artistes pour les envoyer au formulaire Vue
-        // $artists = Artist::orderBy('surname', 'asc')->get();
+        $user = Auth::user();
+        $artist = $user?->artist;
 
-        // return Inertia::render('Albums/Create', [
-        //     'artists' => $artists
-        // ]);
-        $artists = Artist::select('id', 'surname')->get();
+        $isSubscriptionActive = $this->isSubscriptionActive($user);
+
+        // Récupération dynamique des autorisations depuis le modèle User
+        $canCreateAlbum = $user ? $user->canCreateAlbum() : false;
+        $albumCount = $artist ? $artist->albums()->count() : 0;
+
+        // Définition de la limite uniquement pour affichage informatif sur le front-end
+        $plan = $user ? $user->getActivePlanName() : 'basic';
+        $limits = ['basic' => 1, 'premium' => 10, 'vip' => 'Illimité'];
+        $albumLimit = $limits[$plan] ?? 1;
+
         return Inertia::render('music/album/Create', [
-            'artists' => $artists
+            'isArtist'             => !is_null($artist) && $artist->status === 'approved',
+            'isSubscriptionActive' => $isSubscriptionActive,
+            'canCreateAlbum'       => $canCreateAlbum,
+            'albumCount'           => $albumCount,
+            'albumLimit'           => $albumLimit,
+            'artists'              => Artist::select('id', 'surname')->get()
         ]);
     }
 
-    // Enregistrer l'album
     public function store(Request $request)
     {
+        $user = Auth::user();
+        $artist = $user?->artist;
 
-        // Validation des données reçues du formulaire
+        // Sécurité 1 : Est-ce un artiste approuvé ?
+        if (!$artist || $artist->status !== 'approved') {
+            return redirect()->back()->withErrors(['error' => 'Vous devez avoir un profil artiste approuvé pour créer un album.']);
+        }
+
+        // Sécurité 2 : L'abonnement est-il actif ?
+        if (!$this->isSubscriptionActive($user)) {
+            return redirect()->back()->withErrors(['error' => 'Votre abonnement a expiré. Veuillez le renouveler.']);
+        }
+
+        // 🔥 Sécurité 3 : Utilisation de la méthode dynamique centralisée
+        if (!$user->canCreateAlbum()) {
+            return redirect()->back()->withErrors([
+                'error' => "Action refusée : Vous avez atteint la limite maximale d'albums allouée à votre formule actuelle."
+            ]);
+        }
+
         $validated = $request->validate([
             'title'        => 'required|string|max:255',
             'release_year' => 'required|date',
@@ -37,35 +80,22 @@ class AlbumController extends Controller
             'price'        => 'nullable|required_if:is_free,false|numeric|min:0',
         ]);
 
-        // Génération automatique du slug unique à partir du titre
         $validated['slug'] = Str::slug($request->title) . '-' . uniqid();
 
-        // Gestion du téléversement de l'image
         if ($request->hasFile('image')) {
-            // Sauvegarde dans storage/app/public/albums
             $path = $request->file('image')->store('albums', 'public');
             $validated['image'] = $path;
         }
 
-        // Conversion de la valeur du checkbox en booléen
         $validated['is_free'] = $request->boolean('is_free');
-        $artist = Artist::where('user_id', Auth::id())->first();
-
-        if (!$artist) {
-            return redirect()->back()->withError(["error" => "Vous devez avoir un profil artiste pour créer un album."]);
-        }
         $validated['artist_id'] = $artist->id;
 
-        // Si l'album est gratuit, le prix est mis à null
         if ($validated['is_free']) {
             $validated['price'] = null;
         }
 
-        // Création de l'album dans la base de données
         Album::create($validated);
 
-        // Redirection vers la liste des albums avec un message de succès
-
-        return redirect()->route('albums.create')->with('success', 'Album créé !');
+        return redirect("/albums")->with('success', 'Album créé !');
     }
 }

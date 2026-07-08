@@ -32,15 +32,25 @@ class ArtistController extends Controller
                 ->where('stripe_status', 'active')
                 ->where(function ($q) {
                     $q->whereNull('ends_at')
-                    ->orWhere('ends_at', '>', now());
+                      ->orWhere('ends_at', '>', now());
                 })
                 ->latest()
                 ->first();
 
-            $tier = $subscription?->type ?? 'basic';
+            if ($subscription) {
+                // 1. C'est un abonné payant (Premium / VIP) via Stripe
+                $artist->is_active = true;
+                $artist->subscription_tier = $subscription->type;
+            } else {
+                // 2. Si aucune souscription Stripe (Plan Free)
+                // On considère l'artiste actif si son statut global est approuvé
+                $artist->is_active = ($artist->status === 'approved');
 
-            $artist->is_active = !is_null($subscription);
-            $artist->subscription_tier = $tier;
+                // On récupère le pm_type (qui contient 'free') ou on met 'free' par défaut
+                $artist->subscription_tier = $user?->pm_type ?? ($artist->status === 'approved' ? 'free' : 'aucun');
+            }
+
+            // L'ancien bloc d'écrasement a été supprimé d'ici !
 
             return $artist;
         });

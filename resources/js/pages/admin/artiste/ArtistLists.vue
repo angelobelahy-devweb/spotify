@@ -196,9 +196,9 @@ function onPerPageChange() {
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                             <div v-if="artist.is_active" class="flex items-center gap-2">
 
-                                <template v-if="artist.subscription_tier === 'basic'">
+                                <template v-if="artist.subscription_tier === 'basic' || artist.subscription_tier === 'free'">
                                     <Shield class="w-4 h-4 text-gray-400" />
-                                    <span class="text-sm font-medium text-gray-300">Basic</span>
+                                    <span class="text-sm font-medium text-gray-300">Free</span>
                                 </template>
 
                                 <template v-else-if="artist.subscription_tier === 'premium'">
@@ -209,6 +209,10 @@ function onPerPageChange() {
                                 <template v-else-if="artist.subscription_tier === 'vip'">
                                     <Crown class="w-4 h-4 text-amber-400" />
                                     <span class="text-sm font-bold text-amber-400 tracking-wide uppercase text-xs">VIP</span>
+                                </template>
+
+                                <template v-else>
+                                    <span class="text-sm font-medium text-gray-400 capitalize">{{ artist.subscription_tier }}</span>
                                 </template>
                             </div>
 
