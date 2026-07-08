@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\GenreController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])
+Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->controller(GenreController::class)

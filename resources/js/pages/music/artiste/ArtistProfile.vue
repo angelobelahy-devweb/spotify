@@ -4,21 +4,34 @@ import {
     Shield, Zap, Crown, ArrowLeft, Music, Disc, Radio,
     Heart, Eye, MessageCircle, Clock, Play, Pause,
     MoreHorizontal, Share2, Volume2, ListMusic,
-    Star, Calendar, User, Headphones, Award, ShoppingCart, CheckCircle
+    Star, Calendar, User, Headphones, Award, ShoppingCart, CheckCircle, ArrowDownToLine
 } from 'lucide-vue-next'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps({
     artist: Object,
     albums: Array,
     tracks: Array,
-    stats: Object
+    stats: Object,
+    purchasedAlbumIds: { // 🔥 Reçu du contrôleur pour savoir si l'album est possédé
+        type: Array,
+        default: () => []
+    }
 })
 
-// State for audio player
+// State for audio player & cart
 const currentTrack = ref(null)
 const isPlaying = ref(false)
-const audioPlayer = ref(null) // Référence vers la balise HTML5 <audio>
+const audioPlayer = ref(null)
+const cartItems = ref([]) // 🔥 Stockage local du panier
+
+// Récupérer le panier au chargement
+onMounted(() => {
+    const savedCart = localStorage.getItem('music_cart')
+    if (savedCart) {
+        cartItems.value = JSON.parse(savedCart)
+    }
+})
 
 // Computed properties
 const subscriptionBadge = computed(() => {
@@ -52,6 +65,29 @@ const allTracksComments = computed(() => {
 })
 
 // Methods
+const isPurchased = (albumId) => {
+    return props.purchasedAlbumIds.includes(albumId)
+}
+
+const isInCart = (albumId) => {
+    return cartItems.value.includes(albumId)
+}
+
+// 🔥 Modification de l'action d'achat : Ajoute au panier global au lieu de briser le flux
+const buyAlbum = (album) => {
+    if (!cartItems.value.includes(album.id)) {
+        cartItems.value.push(album.id)
+        localStorage.setItem('music_cart', JSON.stringify(cartItems.value))
+
+        // Émettre l'événement global pour mettre à jour le panier du Header/Layout
+        window.dispatchEvent(new CustomEvent('cart-updated', { detail: cartItems.value.length }))
+    }
+}
+
+const downloadAlbum = (album) => {
+    alert(`Téléchargement de l'album : ${album.title}`);
+}
+
 const formatDate = (date) => {
     if (!date) return '---'
     return new Date(date).toLocaleDateString('fr-FR', {
@@ -75,7 +111,6 @@ const formatNumber = (num) => {
     return num
 }
 
-// Fonction de contrôle de lecture
 const togglePlayback = () => {
     if (!audioPlayer.value) return
 
@@ -95,7 +130,6 @@ const playTrack = (track) => {
         currentTrack.value = track
         isPlaying.value = true
 
-        // Attendre que Vue mette à jour l'attribut src de l'audio avant de lancer la lecture
         setTimeout(() => {
             if (audioPlayer.value) {
                 audioPlayer.value.load()
@@ -105,7 +139,6 @@ const playTrack = (track) => {
     }
 }
 
-// Récupère l'URL du fichier audio
 const getTrackUrl = (track) => {
     if (!track || !track.file_path) return ''
     if (track.file_path.startsWith('http://') || track.file_path.startsWith('https://')) return track.file_path
@@ -120,10 +153,6 @@ const getAlbumCover = (coverPath) => {
     if (coverPath.startsWith('/storage/')) return coverPath
     if (coverPath.startsWith('storage/')) return `/${coverPath}`
     return `/storage/${coverPath}`
-}
-
-const buyAlbum = (albumId) => {
-    router.post(`/albums/${albumId}/checkout`)
 }
 </script>
 
@@ -306,11 +335,29 @@ const buyAlbum = (albumId) => {
                                     <span v-else class="text-emerald-400 font-medium">Gratuit</span>
                                 </div>
 
-                                <button v-if="album.price > 0" @click.stop="buyAlbum(album.id)"
-                                        class="w-full mt-2 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-500 rounded transition-colors text-white flex items-center justify-center gap-1.5">
-                                    <ShoppingCart :size="13" />
-                                    Acheter l'album
-                                </button>
+                                <!-- 🔥 NOUVELLE LOGIQUE TRIPLE ÉTAT DES BOUTONS DE L'ALBUM -->
+                                <div v-if="album.price > 0">
+                                    <!-- ÉTAT 1 : Déjà acheté -->
+                                    <button v-if="isPurchased(album.id)" @click.stop="downloadAlbum(album)"
+                                            class="w-full mt-2 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 rounded transition-colors text-white flex items-center justify-center gap-1.5">
+                                        <ArrowDownToLine :size="13" />
+                                        Télécharger
+                                    </button>
+
+                                    <!-- ÉTAT 2 : Déjà dans le panier local -->
+                                    <button v-else-if="isInCart(album.id)" disabled
+                                            class="w-full mt-2 py-1.5 text-xs font-medium bg-blue-600 rounded text-white flex items-center justify-center gap-1.5 cursor-default opacity-90">
+                                        <CheckCircle :size="13" />
+                                        Ajouté au panier
+                                    </button>
+
+                                    <!-- ÉTAT 3 : Disponible à l'achat -->
+                                    <button v-else @click.stop="buyAlbum(album)"
+                                            class="w-full mt-2 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-500 rounded transition-colors text-white flex items-center justify-center gap-1.5">
+                                        <ShoppingCart :size="13" />
+                                        Acheter l'album
+                                    </button>
+                                </div>
                                 <Link v-else :href="`/albums/${album.id}`"
                                       class="w-full mt-2 py-1.5 text-xs font-medium bg-[#33437e] hover:bg-[#4a5a9e] rounded transition-colors text-white flex items-center justify-center">
                                     Écouter l'album
@@ -365,7 +412,6 @@ const buyAlbum = (albumId) => {
         ></audio>
 
         <div class="fixed bottom-0 left-0 right-0 bg-[#0d0d13]/95 backdrop-blur-md border-t border-[#2a2a3e] p-4 flex items-center justify-between z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
-
             <div class="flex items-center gap-3 min-w-[240px]">
                 <div class="w-12 h-12 rounded bg-[#1a1a26] border border-[#2a2a3e] flex-shrink-0 overflow-hidden flex items-center justify-center shadow-inner">
                     <img v-if="currentTrack?.album?.image"
@@ -401,6 +447,5 @@ const buyAlbum = (albumId) => {
                 </button>
             </div>
         </div>
-
     </div>
 </template>

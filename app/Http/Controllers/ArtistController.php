@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Artist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ArtistController extends Controller
@@ -120,11 +121,9 @@ class ArtistController extends Controller
         })->with([
             'user',
             'albums' => function($query) {
-                // Charge les compteurs de relations pour optimiser les performances
                 $query->withCount(['tracks']);
             },
             'tracks' => function($query) {
-                // Récupère l'album associé et les commentaires avec l'auteur du commentaire
                 $query->with(['album', 'comments.user']);
             }
         ])->firstOrFail();
@@ -147,12 +146,23 @@ class ArtistController extends Controller
             'tracks_count' => $artist->tracks->count(),
         ];
 
-        // 4. Envoyer le tout à la vue Inertia
+        // 3.5. 🔥 Récupérer les IDs des albums achetés par l'utilisateur connecté
+        $purchasedAlbumIds = [];
+        if (Auth::check()) {
+            // Remplace 'purchases' ou 'album_id' par tes vrais noms de table/colonne si nécessaire
+            $purchasedAlbumIds = DB::table('purchases')
+                ->where('user_id', Auth::id())
+                ->pluck('album_id')
+                ->toArray();
+        }
+
+        // 4. Envoyer le tout à la vue Inertia (avec la nouvelle prop)
         return Inertia::render('music/artiste/ArtistProfile', [
-            'artist' => $artist,
-            'albums' => $artist->albums,
-            'tracks' => $artist->tracks,
-            'stats'  => $stats
+            'artist'            => $artist,
+            'albums'            => $artist->albums,
+            'tracks'            => $artist->tracks,
+            'stats'             => $stats,
+            'purchasedAlbumIds' => $purchasedAlbumIds // 🔥 Injecté ici
         ]);
     }
 }

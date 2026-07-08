@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Artist;
 use App\Models\Album;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class MusicController extends Controller
@@ -12,8 +13,18 @@ class MusicController extends Controller
     //
     public function album() {
         $albums = Album::with('artist')->latest()->get();
+
+        $purchasedAlbumIds = [];
+        if (Auth::check()) {
+            $purchasedAlbumIds = DB::table('purchases')
+                ->where('user_id', Auth::id())
+                ->pluck('album_id')
+                ->toArray();
+        }
+
         return Inertia::render("music/album/AlbumList", [
             'albums' => $albums,
+            'purchasedAlbumIds' => $purchasedAlbumIds,
         ]);
     }
 

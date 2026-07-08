@@ -2,11 +2,43 @@
 import AlbumCard from '@/components/angelo/cards/AlbumCard.vue';
 import { Link } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next';
-import { defineProps, ref, defineEmits } from 'vue'
+import { defineProps, ref, onMounted } from 'vue'
 
-const props = defineProps([
-    'albums'
-]);
+const props = defineProps({
+    albums: Array,
+    purchasedAlbumIds: {
+        type: Array,
+        default: () => []
+    }
+});
+
+const cartItems = ref<number[]>([])
+
+const isPurchased = (albumId: number) => {
+    return props.purchasedAlbumIds.includes(albumId);
+};
+
+onMounted(() => {
+    const savedCart = localStorage.getItem('music_cart')
+    if (savedCart) {
+        cartItems.value = JSON.parse(savedCart)
+    }
+})
+
+const handleAddToCart = (album: any) => {
+    if (!cartItems.value.includes(album.id)) {
+        cartItems.value.push(album.id)
+        localStorage.setItem('music_cart', JSON.stringify(cartItems.value))
+
+        // Émettre un événement global pour que le layout mette à jour son compteur
+        window.dispatchEvent(new CustomEvent('cart-updated', { detail: cartItems.value.length }))
+    }
+}
+
+const handleDownload = (album: any) => {
+    // Logique de téléchargement (Exemple: redirection vers le fichier ou un zip de l'album)
+    alert(`Téléchargement de l'album : ${album.title}`);
+};
 </script>
 
 <template>
@@ -20,12 +52,19 @@ const props = defineProps([
         </Link>
     </div>
     <div class="w-full flex flex-wrap items-center justify-start gap-2">
-        <Link v-for="album in albums"  :key="album.id" :href="`/albums/detail/${album.slug}`">
-            <AlbumCard
-                :title="album.title"
-                :artist="album.artist.surname"
-                :image="`/storage/${album.image}`"
-            />
-        </Link>
+        <div v-for="album in albums" :key="album.id" class="relative group">
+            <Link :href="`/albums/detail/${album.slug}`">
+                <AlbumCard
+                    :title="album.title"
+                    :artist="album.artist.surname"
+                    :image="`/storage/${album.image}`"
+                    :price="album.price ?? 'gratuit'"
+                    :isAdded="cartItems.includes(album.id)"
+                    :isPurchased="isPurchased(album.id)"
+                    @add-to-cart="handleAddToCart(album)"
+                    @download="handleDownload(album)"
+                />
+            </Link>
+        </div>
     </div>
 </template>
