@@ -45,6 +45,8 @@ withDefaults(
     },
 );
 
+const page = usePage()
+
 const cartCount = ref(0)
 const isOpenModal = ref(false);
 const openModal = () => {
@@ -76,27 +78,45 @@ const handleClickOutside = (event: MouseEvent) => {
     }
 };
 
-// 👉 Ajouter/retirer l'écouteur d'événements
+// 👉 Dynamic handler reference for the global custom event
+const handleCartUpdate = (e: Event) => {
+    cartCount.value = (e as CustomEvent).detail;
+};
+
+// 👉 Single consolidated Lifecycle Hooks
 onMounted(() => {
+    // Add event listener once
     document.addEventListener('click', handleClickOutside);
+
+    // Initial check for cart data on fresh page load or manual refresh
+    if (page.props.flash?.success) {
+        localStorage.removeItem('music_cart')
+        cartCount.value = 0
+    } else {
+        const savedCart = localStorage.getItem('music_cart')
+        if (savedCart) cartCount.value = JSON.parse(savedCart).length
+    }
+
+    // Connect to global updates using the named reference
+    window.addEventListener('cart-updated', handleCartUpdate)
 });
 
 onBeforeUnmount(() => {
+    // Clean up document and window listeners safely on layout destruction
     document.removeEventListener('click', handleClickOutside);
+    window.removeEventListener('cart-updated', handleCartUpdate)
 });
 
-onMounted(() => {
-    document.addEventListener('click', handleClickOutside);
+// 🔥 THE FIX: Watch for global flash state changes during seamless background Inertia redirects
+watch(() => page.props.flash?.success, (newSuccessMessage) => {
+    if (newSuccessMessage) {
+        localStorage.removeItem('music_cart');
+        cartCount.value = 0;
 
-    // Initialise le compteur du panier
-    const savedCart = localStorage.getItem('music_cart')
-    if (savedCart) cartCount.value = JSON.parse(savedCart).length
-
-    // Écoute les mises à jour en direct depuis albumList
-    window.addEventListener('cart-updated', ((e: CustomEvent) => {
-        cartCount.value = e.detail
-    }) as EventListener)
-});
+        // Broadcast to sub-components (like albumList.vue) to clean their views immediately
+        window.dispatchEvent(new CustomEvent('cart-updated', { detail: 0 }));
+    }
+}, { immediate: true });
 </script>
 
 <template>
@@ -195,7 +215,7 @@ onMounted(() => {
             <label for="my_modal_7" class="">
               <SearchInputMd />
             </label>
-            
+
             <Link href="/checkout" class="relative p-2 text-white hover:opacity-80 transition-all">
                 <ShoppingCart class="w-6 h-6" />
                 <span v-if="cartCount > 0" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
@@ -255,15 +275,9 @@ onMounted(() => {
                     <User class="dropdown-item-icon" />
                     Voir Profil
                   </Link>
-<<<<<<< HEAD
 
                   <Link
-                    href="/settings"
-=======
-                  
-                  <Link 
-                    href="/settings/profile" 
->>>>>>> 843a7c97820624139a30702030683a88835c2f76
+                    href="/settings/profile"
                     class="dropdown-item"
                   >
                     <Settings class="dropdown-item-icon" />

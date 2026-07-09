@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import AlbumCard from '@/components/angelo/cards/AlbumCard.vue';
-import { Link } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next';
-import { defineProps, ref, onMounted } from 'vue'
+import { defineProps, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 
 const props = defineProps({
     albums: Array,
@@ -12,31 +12,58 @@ const props = defineProps({
     }
 });
 
+const page = usePage();
 const cartItems = ref<number[]>([])
 
 const isPurchased = (albumId: number) => {
     return props.purchasedAlbumIds.includes(albumId);
 };
 
+// 👉 Synchronize and load initial data cleanly
 onMounted(() => {
     const savedCart = localStorage.getItem('music_cart')
     if (savedCart) {
         cartItems.value = JSON.parse(savedCart)
     }
+
+    window.addEventListener('cart-updated', handleGlobalCartSync)
 })
+
+onBeforeUnmount(() => {
+    window.removeEventListener('cart-updated', handleGlobalCartSync)
+})
+
+const handleGlobalCartSync = (e: Event) => {
+    const count = (e as CustomEvent).detail
+    if (count === 0) {
+        cartItems.value = []
+    }
+}
+
+// 🔥 Keep flash properties watched to clear local arrays across page transitions
+watch(
+    () => page.props.flash,
+    (newFlash) => {
+        if (newFlash?.success) {
+            localStorage.removeItem('music_cart');
+            cartItems.value = [];
+            window.dispatchEvent(new CustomEvent('cart-updated', { detail: 0 }));
+        }
+    },
+    { deep: true, immediate: true }
+);
 
 const handleAddToCart = (album: any) => {
     if (!cartItems.value.includes(album.id)) {
         cartItems.value.push(album.id)
         localStorage.setItem('music_cart', JSON.stringify(cartItems.value))
 
-        // Émettre un événement global pour que le layout mette à jour son compteur
+        // Update layout header live
         window.dispatchEvent(new CustomEvent('cart-updated', { detail: cartItems.value.length }))
     }
 }
 
 const handleDownload = (album: any) => {
-    // Logique de téléchargement (Exemple: redirection vers le fichier ou un zip de l'album)
     alert(`Téléchargement de l'album : ${album.title}`);
 };
 </script>
@@ -53,7 +80,8 @@ const handleDownload = (album: any) => {
     </div>
     <div class="w-full flex flex-wrap items-center justify-start gap-2">
         <div v-for="album in albums" :key="album.id" class="relative group">
-            <Link :href="`/albums/detail/${album.slug}`">
+            <!-- ⚡ FIXED: Wrapped back cleanly into a standard Link layer with native click handling -->
+            <Link :href="`/albums/detail/${album.slug}`" class="block text-inherit no-underline">
                 <AlbumCard
                     :title="album.title"
                     :artist="album.artist.surname"

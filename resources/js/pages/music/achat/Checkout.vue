@@ -1,40 +1,111 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { router, Link } from '@inertiajs/vue3';
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
+import { router, Link, usePage } from '@inertiajs/vue3';
 import { Trash2, CreditCard, ArrowLeft, ShoppingCart } from 'lucide-vue-next';
-import logo from '@/assets/images/logo.png'; // Ajuste le chemin vers ton logo si nécessaire
-import backgroundImage from '@/assets/images/font_casque.png'; // Ajuste le chemin vers ton image de fond
+import logo from '@/assets/images/logo.png';
+import backgroundImage from '@/assets/images/font_casque.png';
 
-const props = defineProps({
-    albums: {
-        type: Array,
-        default: () => []
-    }
-});
+interface Artist {
+    name?: string;
+    surname?: string;
+}
 
+interface Album {
+    id: number;
+    title: string;
+    image: string;
+    price: string | number;
+    artist?: Artist;
+}
+
+const props = defineProps<{
+    albums?: Album[];
+}>();
+
+const page = usePage();
 const cartCount = ref(0);
 const cartIds = ref<number[]>([]);
-const cartAlbums = ref<any[]>([]);
+const cartAlbums = ref<Album[]>([]);
 const isProcessing = ref(false);
 
-onMounted(() => {
+const loadCartFromStorage = () => {
     const savedCart = localStorage.getItem('music_cart');
     if (savedCart) {
         cartIds.value = JSON.parse(savedCart);
         cartCount.value = cartIds.value.length;
-        fetchCartDetails();
+    } else {
+        cartIds.value = [];
+        cartCount.value = 0;
     }
-});
+    fetchCartDetails();
+};
 
 const fetchCartDetails = () => {
-    if (props.albums.length > 0) {
-        cartAlbums.value = props.albums.filter((album: any) => cartIds.value.includes(album.id));
+    if (props.albums && props.albums.length > 0) {
+        cartAlbums.value = props.albums.filter((album) => cartIds.value.includes(album.id));
+    } else {
+        cartAlbums.value = [];
     }
 };
 
+const handleGlobalCartSync = (e: Event) => {
+    const count = (e as CustomEvent).detail;
+    if (count === 0) {
+        cartIds.value = [];
+        cartAlbums.value = [];
+        cartCount.value = 0;
+    } else {
+        loadCartFromStorage();
+    }
+};
+
+// Initial load
+loadCartFromStorage();
+
+watch(() => props.albums, () => {
+    fetchCartDetails();
+}, { immediate: true, deep: true });
+
+// Shared state-clearing function
+const clearCartState = () => {
+    localStorage.removeItem('music_cart');
+    cartIds.value = [];
+    cartAlbums.value = [];
+    cartCount.value = 0;
+    window.dispatchEvent(new CustomEvent('cart-updated', { detail: 0 }));
+};
+
+// Automatically clear if a success flash message is sent to whatever page we land on
+watch(
+    () => page.props.flash,
+    (newFlash) => {
+        if (newFlash?.success) {
+            clearCartState();
+        }
+    },
+    { deep: true, immediate: true }
+);
+
+// 🔥 SYSTEM FIX: Listens for the exact window unload event when redirecting to Stripe
+const clearCartOnLeave = () => {
+    if (isProcessing.value) {
+        clearCartState();
+    }
+};
+
+onMounted(() => {
+    window.addEventListener('cart-updated', handleGlobalCartSync);
+    window.addEventListener('beforeunload', clearCartOnLeave);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('cart-updated', handleGlobalCartSync);
+    window.removeEventListener('beforeunload', clearCartOnLeave);
+});
+
 const totalPrice = computed(() => {
     return cartAlbums.value.reduce((sum, album) => {
-        const price = parseFloat(album.price);
+        const price = typeof album.price === 'string' ? parseFloat(album.price) : album.price;
         return sum + (isNaN(price) ? 0 : price);
     }, 0);
 });
@@ -45,7 +116,6 @@ const removeFromCart = (id: number) => {
     cartCount.value = cartIds.value.length;
     localStorage.setItem('music_cart', JSON.stringify(cartIds.value));
 
-    // Notifier le reste de l'application au cas où
     window.dispatchEvent(new CustomEvent('cart-updated', { detail: cartIds.value.length }));
 };
 
@@ -56,15 +126,7 @@ const checkout = () => {
     router.post('/purchase', {
         album_ids: cartIds.value
     }, {
-        onSuccess: () => {
-            localStorage.removeItem('music_cart');
-            cartIds.value = [];
-            cartAlbums.value = [];
-            cartCount.value = 0;
-            window.dispatchEvent(new CustomEvent('cart-updated', { detail: 0 }));
-            isProcessing.value = false;
-            alert('Achat effectué avec succès !');
-        },
+        // If the backend returns validation errors, cancel processing status
         onError: () => {
             isProcessing.value = false;
         }
@@ -82,9 +144,7 @@ const checkout = () => {
             backgroundAttachment: 'fixed'
         }"
     >
-
         <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 mt-1">
-
             <Link href="/albums" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-3 transition-colors group">
                 <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
                 Retour aux albums
@@ -100,7 +160,6 @@ const checkout = () => {
             </div>
 
             <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-
                 <div class="lg:col-span-2 space-y-4">
                     <div
                         v-for="album in cartAlbums"
@@ -119,7 +178,7 @@ const checkout = () => {
                             <span class="font-bold text-white text-sm md:text-base">
                                 {{ !album.price || album.price == 0 || album.price === 'gratuit' ? 'Gratuit' : `${album.price} €` }}
                             </span>
-                            <button @click="removeFromCart(album.id)" class="text-gray-400 hover:text-red-500 p-1 transition-colors">
+                            <button @click="removeFromCart(album.id)" class="text-gray-400 hover:text-red-500 p-1 transition-colors" :disabled="isProcessing">
                                 <Trash2 class="w-5 h-5" />
                             </button>
                         </div>
@@ -147,13 +206,17 @@ const checkout = () => {
                     <button
                         @click="checkout"
                         :disabled="isProcessing"
-                        class="w-full bg-[#33437e] hover:bg-[#4358a5] disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                        class="w-full bg-[#33437e] hover:bg-[#4358a5] disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                     >
-                        <CreditCard class="w-5 h-5" />
-                        {{ isProcessing ? 'Traitement...' : 'Valider la commande' }}
+                        <svg v-if="isProcessing" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <CreditCard v-else class="w-5 h-5" />
+
+                        <span>{{ isProcessing ? 'Redirection vers Stripe...' : 'Valider la commande' }}</span>
                     </button>
                 </div>
-
             </div>
         </main>
     </div>
