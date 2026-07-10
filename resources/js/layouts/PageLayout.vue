@@ -212,7 +212,7 @@ onMounted(() => {
                     {{ cartCount }}
                 </span>
             </Link>
-
+        
         <div class="flex gap-5 items-center justify-end">
 
           <div v-if="$page.props.auth.user" class="flex gap-5 items-center">
@@ -290,6 +290,7 @@ onMounted(() => {
               </PrimaryButton>
             </Link>
           </div>
+        </div>
         </div>
       </header>
 
