@@ -1,12 +1,18 @@
 <script setup>
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import {
     Shield, Zap, Crown, ArrowLeft, Music, Disc, Radio,
     Heart, Eye, MessageCircle, Clock, Play, Pause,
     MoreHorizontal, Share2, Volume2, ListMusic,
     Star, Calendar, User, Headphones, Award, ShoppingCart, CheckCircle, ArrowDownToLine
 } from 'lucide-vue-next'
+<<<<<<< HEAD
 import { ref, computed, onMounted } from 'vue'
+=======
+import { computed } from 'vue'
+import { playerStore } from '@/lib/playerStore'
+import { openAuthModal } from '@/lib/authModalStore'
+>>>>>>> angelo
 
 const props = defineProps({
     artist: Object,
@@ -19,6 +25,7 @@ const props = defineProps({
     }
 })
 
+<<<<<<< HEAD
 // State for audio player & cart
 const currentTrack = ref(null)
 const isPlaying = ref(false)
@@ -32,6 +39,15 @@ onMounted(() => {
         cartItems.value = JSON.parse(savedCart)
     }
 })
+=======
+const page = usePage()
+const isLoggedIn = computed(() => Boolean(page.props.auth.user))
+const currentTrack = computed(() => playerStore.currentTrack)
+const isPlaying = computed(() => playerStore.isPlaying)
+const progress = computed(() => playerStore.progress || 0)
+const currentTime = computed(() => playerStore.currentTime || 0)
+const duration = computed(() => playerStore.duration || 0)
+>>>>>>> angelo
 
 // Computed properties
 const subscriptionBadge = computed(() => {
@@ -112,24 +128,16 @@ const formatNumber = (num) => {
 }
 
 const togglePlayback = () => {
-    if (!audioPlayer.value) return
-
-    if (isPlaying.value) {
-        audioPlayer.value.pause()
-        isPlaying.value = false
-    } else {
-        audioPlayer.value.play().catch(err => console.log("Erreur de lecture :", err))
-        isPlaying.value = true
-    }
+    playerStore.toggle()
 }
 
 const playTrack = (track) => {
-    if (currentTrack.value?.id === track.id) {
-        togglePlayback()
-    } else {
-        currentTrack.value = track
-        isPlaying.value = true
+    if (!isLoggedIn.value) {
+        openAuthModal('Veuillez vous connecter pour lancer la musique.')
+        return
+    }
 
+<<<<<<< HEAD
         setTimeout(() => {
             if (audioPlayer.value) {
                 audioPlayer.value.load()
@@ -139,6 +147,23 @@ const playTrack = (track) => {
     }
 }
 
+=======
+    if (!track) return
+
+    if (currentTrack.value?.id === track.id) {
+        playerStore.toggle()
+    } else {
+        playerStore.play(track, props.tracks)
+    }
+}
+
+const updateProgress = (event) => {
+    if (!currentTrack.value || !duration.value) return
+    const value = Number(event.target.value)
+    playerStore.seek(value * duration.value)
+}
+
+>>>>>>> angelo
 const getTrackUrl = (track) => {
     if (!track || !track.file_path) return ''
     if (track.file_path.startsWith('http://') || track.file_path.startsWith('https://')) return track.file_path
@@ -335,6 +360,7 @@ const getAlbumCover = (coverPath) => {
                                     <span v-else class="text-emerald-400 font-medium">Gratuit</span>
                                 </div>
 
+
                                 <!-- 🔥 NOUVELLE LOGIQUE TRIPLE ÉTAT DES BOUTONS DE L'ALBUM -->
                                 <div v-if="album.price > 0">
                                     <!-- ÉTAT 1 : Déjà acheté -->
@@ -358,10 +384,7 @@ const getAlbumCover = (coverPath) => {
                                         Acheter l'album
                                     </button>
                                 </div>
-                                <Link v-else :href="`/albums/${album.id}`"
-                                      class="w-full mt-2 py-1.5 text-xs font-medium bg-[#33437e] hover:bg-[#4a5a9e] rounded transition-colors text-white flex items-center justify-center">
-                                    Écouter l'album
-                                </Link>
+                                
                             </div>
                         </div>
                     </div>
@@ -380,8 +403,20 @@ const getAlbumCover = (coverPath) => {
                             Aucun commentaire pour le moment.
                         </div>
                         <div v-for="comment in allTracksComments.slice(0, 5)" :key="comment.id" class="flex gap-3">
-                            <img :src="comment.user?.pdp ? `/storage/${comment.user.pdp}` : '/images/default-avatar.png'"
-                                 class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+
+                            <img
+                                v-if="comment.user?.pdp"
+                                :src="`/storage/${comment.user.pdp}`"
+                                :alt="comment.user.name"
+                                class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover flex-shrink-0"
+                            />
+
+                            <span
+                                v-else
+                                class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold"
+                            >
+                                {{ (comment.user?.name || 'U').charAt(0).toUpperCase() }}
+                            </span>
                             <div class="flex-1">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-2">
@@ -402,15 +437,6 @@ const getAlbumCover = (coverPath) => {
             </div>
         </div>
 
-        <audio
-            ref="audioPlayer"
-            v-if="currentTrack"
-            :src="getTrackUrl(currentTrack)"
-            @ended="isPlaying = false; currentTrack = null"
-            @play="isPlaying = true"
-            @pause="isPlaying = false"
-        ></audio>
-
         <div class="fixed bottom-0 left-0 right-0 bg-[#0d0d13]/95 backdrop-blur-md border-t border-[#2a2a3e] p-4 flex items-center justify-between z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
             <div class="flex items-center gap-3 min-w-[240px]">
                 <div class="w-12 h-12 rounded bg-[#1a1a26] border border-[#2a2a3e] flex-shrink-0 overflow-hidden flex items-center justify-center shadow-inner">
@@ -427,9 +453,26 @@ const getAlbumCover = (coverPath) => {
                         {{ currentTrack ? currentTrack.title : 'Aucune piste' }}
                     </span>
                     <span class="text-xs text-gray-400 truncate">
-                        {{ artist.surname }}
+                        {{ currentTrack ? currentTrack.artist : artist.surname }}
                     </span>
                 </div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-center px-4">
+                <div class="flex items-center justify-between text-xs text-gray-400 mb-2">
+                    <span>{{ formatDuration(currentTime) }}</span>
+                    <span>{{ formatDuration(duration) }}</span>
+                </div>
+                <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.001"
+                    :value="progress"
+                    @input="updateProgress"
+                    :disabled="!currentTrack"
+                    class="w-full accent-white"
+                />
             </div>
 
             <div class="flex items-center gap-4">

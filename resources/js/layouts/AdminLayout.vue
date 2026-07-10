@@ -18,8 +18,13 @@ import backgroundImage from '@/assets/images/font_casque.png';
 
 import { Link, usePage } from '@inertiajs/vue3'
 import { ref } from 'vue'
+import { playerStore } from '@/lib/playerStore';
 
 const sidebarOpen = ref(false)
+
+const handleLogout = () => {
+  playerStore.stop();
+};
 
 const menus = [
   {
@@ -61,11 +66,6 @@ const menus = [
     name: 'Commentaires',
     icon: MessageCircle,
     route: '/admin/comments',
-  },
-  {
-    name: 'Favoris',
-    icon: Heart,
-    route: '/admin/favorites',
   },
 ]
 </script>
@@ -147,6 +147,7 @@ const menus = [
             href="/logout"
             method="post"
             as="button"
+            @click="handleLogout"
             class="w-full flex items-center gap-3
             px-2 py-2 rounded-md text-sm cursor-pointer
             bg-[#ab072e] hover:bg-[#ab072e]/80
@@ -193,7 +194,7 @@ const menus = [
         <div class="flex items-center gap-4">
           <div class="text-right">
             <h3 class="font-semibold">
-              Angelo
+              Ange
             </h3>
 
             <p class="text-xs text-gray-400">
@@ -201,10 +202,10 @@ const menus = [
             </p>
           </div>
 
-          <img
+          <!--<img
             :src="`/assets/images/admin.jpeg`"
             class="w-12 h-12 rounded-full object-cover border-2 border-[#ab072e]"
-          />
+          />-->
         </div>
       </header>
 

@@ -1,9 +1,14 @@
 <script setup>
 import AlbumHeader from '@/components/angelo/album/AlbumHeader.vue'
 import AlbumSongs from '@/components/angelo/album/AlbumSongs.vue'
-import { defineProps, computed } from 'vue'
+import { defineProps, computed, onMounted } from 'vue'
 import { ArrowLeft } from 'lucide-vue-next';
-import { Link } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
+import { playerStore } from '@/lib/playerStore'
+import { openAuthModal } from '@/lib/authModalStore'
+
+const page = usePage()
+const isLoggedIn = computed(() => Boolean(page.props.auth?.user))
 
 // Récupération de l'album envoyé par le contrôleur Laravel
 const props = defineProps([
@@ -39,9 +44,20 @@ const formattedSongs = computed(() => {
         artist: props.album.artist?.surname || 'Artiste inconnu',
         duration: formatDuration(track.duration),
         image: `/storage/${props.album.image}`,
-        // AJOUT REQUIS : On passe le vrai lien du fichier MP3 public
-        file_path: `/storage/${track.file_path}` 
+        file_path: `/storage/${track.file_path}`
     }));
+});
+
+onMounted(() => {
+    const songs = formattedSongs.value;
+    if (!isLoggedIn.value) {
+        openAuthModal('Veuillez vous connecter pour écouter cet album.');
+        return;
+    }
+
+    if (songs.length > 0) {
+        playerStore.play(songs[0], songs);
+    }
 });
 
 </script>

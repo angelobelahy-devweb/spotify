@@ -3,7 +3,8 @@
 use App\Http\Controllers\Admin\CommentController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth','admin'])
+
+Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->controller(CommentController::class)

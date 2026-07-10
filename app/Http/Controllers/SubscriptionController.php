@@ -137,14 +137,19 @@ class SubscriptionController extends Controller
                 'updated_at'      => now(),
             ]);
 
-            // 🔥 FIX : ON NE CRÉE PLUS L'ARTISTE ICI EN 'approved' !
 
             $user->pm_type = $plan;
             $user->save();
         }
 
+        $artist = $user->artist;
+
         return Inertia::render('subscription/Accepted', [
-            'plan' => $plan
+            'plan' => $plan,
+            'artist' => $artist ? [
+                'status' => $artist->status,
+                'slug' => $artist->user?->slug,
+            ] : null,
         ]);
     }
 

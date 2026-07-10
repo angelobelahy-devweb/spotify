@@ -3,7 +3,8 @@
 use App\Http\Controllers\Admin\ArtistController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'admin'])
+
+Route::middleware(['auth', 'admin']) 
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {

@@ -2,6 +2,64 @@ import { reactive } from 'vue';
 
 const getTrackKey = (track) => track?.id ?? track?.file_path ?? track?.title;
 
+const normalizeTrackPath = (filePath) => {
+    if (!filePath || typeof filePath !== 'string') return '';
+    const normalized = filePath.trim();
+    if (!normalized) return '';
+    if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+        return normalized;
+    }
+    if (normalized.startsWith('/storage/')) {
+        return normalized;
+    }
+    if (normalized.startsWith('storage/')) {
+        return `/${normalized}`;
+    }
+    return `/storage/${normalized}`;
+};
+
+const normalizeAssetPath = (assetPath) => {
+    if (!assetPath || typeof assetPath !== 'string') return '';
+    const normalized = assetPath.trim();
+    if (!normalized) return '';
+    if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+        return normalized;
+    }
+    if (normalized.startsWith('/storage/')) {
+        return normalized;
+    }
+    if (normalized.startsWith('storage/')) {
+        return `/${normalized}`;
+    }
+    return `/storage/${normalized}`;
+};
+
+const normalizeTrack = (track) => {
+    if (!track || typeof track !== 'object') return track;
+
+    const image = track.image
+        ? normalizeAssetPath(track.image)
+        : normalizeAssetPath(track.album?.image);
+
+    const artist = track.artist
+        || track.album?.artist?.surname
+        || track.album?.artist?.name
+        || track.album?.artist_name
+        || '';
+
+    const album = track.album && typeof track.album === 'object'
+        ? track.album
+        : { title: track.album };
+
+    return {
+        ...track,
+        file_path: normalizeTrackPath(track.file_path),
+        image: image || track.image || '',
+        artist,
+        album,
+    };
+};
+
 export const playerStore = reactive({
     currentTrack: null,
     currentPlaylist: [],
@@ -13,12 +71,48 @@ export const playerStore = reactive({
     progress: 0,
     volume: 1,
     favorites: [],
+    favoriteCounts: {},
+
+    setFavoriteCount(track, count) {
+        const key = getTrackKey(track);
+        if (!key) return;
+        this.favoriteCounts[key] = Number(count || 0);
+    },
+
+    getFavoriteCount(track) {
+        const key = getTrackKey(track);
+        if (!key) return undefined;
+        return this.favoriteCounts[key];
+    },
 
     play(track, playlist = []) {
         if (!track) return;
 
-        if (this.currentTrack?.file_path === track.file_path && this.audioElement) {
-            if (!this.isPlaying) {
+        const normalizedTrack = normalizeTrack(track);
+        const normalizedPlaylist = Array.isArray(playlist) && playlist.length
+            ? playlist.map(normalizeTrack)
+            : this.currentPlaylist.length
+                ? this.currentPlaylist.map(normalizeTrack)
+                : [normalizedTrack];
+
+        normalizedPlaylist.forEach((item) => {
+            if (typeof item.favorites_count !== 'undefined') {
+                this.setFavoriteCount(item, item.favorites_count);
+            }
+        });
+
+        if (typeof normalizedTrack.favorites_count !== 'undefined') {
+            this.setFavoriteCount(normalizedTrack, normalizedTrack.favorites_count);
+        }
+
+        const normalizedTrackPath = normalizedTrack.file_path;
+        if (!normalizedTrackPath) return;
+
+        if (this.currentTrack && normalizeTrackPath(this.currentTrack.file_path) === normalizedTrackPath && this.audioElement) {
+            if (this.isPlaying) {
+                this.audioElement.pause();
+                this.isPlaying = false;
+            } else {
                 this.audioElement.play().then(() => {
                     this.isPlaying = true;
                 }).catch(() => {
@@ -33,27 +127,23 @@ export const playerStore = reactive({
             this.audioElement.src = '';
         }
 
-        this.currentPlaylist = Array.isArray(playlist) && playlist.length
-            ? playlist
-            : this.currentPlaylist.length
-                ? this.currentPlaylist
-                : [track];
+        this.currentPlaylist = normalizedPlaylist;
 
         this.currentIndex = this.currentPlaylist.findIndex(
-            (item) => item.file_path === track.file_path
+            (item) => normalizeTrackPath(item.file_path) === normalizedTrackPath
         );
 
         if (this.currentIndex === -1) {
             this.currentIndex = 0;
         }
 
-        this.currentTrack = track;
+        this.currentTrack = normalizedTrack;
         this.isPlaying = true;
         this.currentTime = 0;
         this.duration = 0;
         this.progress = 0;
 
-        this.audioElement = new Audio(track.file_path);
+        this.audioElement = new Audio(normalizedTrackPath);
         this.audioElement.volume = this.volume;
 
         this.audioElement.addEventListener('loadedmetadata', () => {
@@ -68,6 +158,15 @@ export const playerStore = reactive({
                 : 0;
         });
 
+        this.audioElement.addEventListener('error', () => {
+            const audioError = this.audioElement?.error;
+            const errorInfo = audioError
+                ? `code ${audioError.code}${audioError.message ? `: ${audioError.message}` : ''}`
+                : 'unknown audio error';
+            console.error('Audio loading error:', normalizedTrackPath, errorInfo, this.audioElement);
+            this.isPlaying = false;
+        });
+
         this.audioElement.addEventListener('ended', () => {
             this.isPlaying = false;
 
@@ -78,7 +177,8 @@ export const playerStore = reactive({
 
         this.audioElement.play().then(() => {
             this.isPlaying = true;
-        }).catch(() => {
+        }).catch((error) => {
+            console.error('Audio playback failed:', normalizedTrackPath, error);
             this.isPlaying = false;
         });
     },
@@ -96,6 +196,22 @@ export const playerStore = reactive({
                 this.isPlaying = false;
             });
         }
+    },
+
+    stop() {
+        if (this.audioElement) {
+            this.audioElement.pause();
+            this.audioElement.src = '';
+            this.audioElement = null;
+        }
+
+        this.isPlaying = false;
+        this.currentTrack = null;
+        this.currentPlaylist = [];
+        this.currentIndex = -1;
+        this.currentTime = 0;
+        this.duration = 0;
+        this.progress = 0;
     },
 
     seek(time) {
@@ -183,10 +299,14 @@ export const playerStore = reactive({
             (favoriteTrack) => getTrackKey(favoriteTrack) === key
         );
 
+        const currentCount = this.getFavoriteCount(track) ?? track.favorites_count ?? 0;
+
         if (existingIndex >= 0) {
             this.favorites.splice(existingIndex, 1);
+            this.setFavoriteCount(track, Math.max(0, currentCount - 1));
         } else {
             this.favorites.push(track);
+            this.setFavoriteCount(track, currentCount + 1);
         }
     }
 });

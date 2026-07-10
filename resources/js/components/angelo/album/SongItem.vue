@@ -20,6 +20,16 @@ const emit = defineEmits(['playTrack']);
 const page = usePage();
 const isLoggedIn = computed(() => Boolean(page.props.auth.user));
 
+const normalizeTrackPath = (filePath) => {
+  if (!filePath || typeof filePath !== 'string') return '';
+  const normalized = filePath.trim();
+  if (!normalized) return '';
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized;
+  if (normalized.startsWith('/storage/')) return normalized;
+  if (normalized.startsWith('storage/')) return `/${normalized}`;
+  return `/storage/${normalized}`;
+};
+
 const trackData = computed(() => ({
   id: props.id,
   title: props.title,
@@ -28,9 +38,10 @@ const trackData = computed(() => ({
   file_path: props.file_path,
 }));
 
-const isCurrentTrackPlaying = computed(
-  () => playerStore.currentTrack?.file_path === props.file_path && playerStore.isPlaying
-);
+const isCurrentTrackPlaying = computed(() => {
+  const currentTrackPath = normalizeTrackPath(playerStore.currentTrack?.file_path);
+  return currentTrackPath && currentTrackPath === normalizeTrackPath(props.file_path) && playerStore.isPlaying;
+});
 
 const isFavorite = computed(() => playerStore.isFavorite(trackData.value));
 
@@ -95,7 +106,9 @@ const toggleFavorite = async (event) => {
 };
 
 const handlePlayTrack = (event) => {
-  event.stopPropagation();
+  if (event && event.stopPropagation) {
+    event.stopPropagation();
+  }
 
   if (!isLoggedIn.value) {
     openAuthModal('Veuillez vous connecter pour lancer la musique.');

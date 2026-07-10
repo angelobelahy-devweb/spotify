@@ -2,10 +2,7 @@
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth','admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->controller(DashboardController::class)
-    ->group(function () {
-        Route::get('/dashboard', 'index');
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.index');
 });

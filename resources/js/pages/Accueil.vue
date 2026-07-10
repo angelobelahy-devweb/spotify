@@ -3,8 +3,9 @@ import PrimaryButton from '@/components/angelo/button/PrimaryButton.vue';
 import MusicCard from '@/components/angelo/cards/MusicCard.vue';
 import { Inbox, Hourglass, ArrowUp, Facebook, Youtube, Linkedin, Instagram, Music, Search, X, ArrowLeft, ArrowRight } from 'lucide-vue-next';
 import { ref, computed, watch, nextTick } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { playerStore } from '@/lib/playerStore';
+import { openAuthModal } from '@/lib/authModalStore';
 import logo from '@/assets/images/font-pers.png';
 
 // Import Swiper
@@ -16,6 +17,7 @@ import { Navigation } from 'swiper/modules';
 const props = defineProps({
   tracks: Array,
   genres: Array,
+  stats: Object,
 });
 
 // ========== FORMULAIRE DE CONTACT ==========
@@ -76,18 +78,41 @@ const getTopGenreIds = (tracks, limit = 3) => {
     .map(([genreId]) => genreId);
 };
 
+const favoriteTrackIds = computed(() => {
+  return new Set((page.props.favorites ?? []).map((favorite) => String(favorite.id)));
+});
+
+const favoriteGenreIds = computed(() => {
+  if (!props.tracks) return new Set();
+
+  return new Set(
+    props.tracks
+      .filter((track) => favoriteTrackIds.value.has(String(track.id)))
+      .flatMap((track) => track.genres?.map((genre) => String(genre.id)) || [])
+  );
+});
+
 const nouveautes = computed(() => {
   if (!props.tracks) return [];
-  return [...filteredTracks.value]
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, 10);
+
+  const now = new Date();
+  const recentThreshold = new Date(now);
+  recentThreshold.setDate(now.getDate() - 30);
+
+  return filteredTracks.value
+    .filter((track) => {
+      const createdAt = new Date(track.created_at);
+      return !Number.isNaN(createdAt.getTime()) && createdAt >= recentThreshold;
+    })
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 });
 
 const populaires = computed(() => {
   if (!props.tracks) return [];
+
   return [...filteredTracks.value]
-    .sort((a, b) => (b.favorites_count || 0) - (a.favorites_count || 0))
-    .slice(0, 10);
+    .filter((track) => (track.favorites_count || 0) >= 5)
+    .sort((a, b) => (b.favorites_count || 0) - (a.favorites_count || 0));
 });
 
 const suggestions = computed(() => {
@@ -99,20 +124,53 @@ const suggestions = computed(() => {
   ]);
 
   const remaining = filteredTracks.value.filter((track) => !excludedIds.has(track.id));
-  const topGenreIds = getTopGenreIds(filteredTracks.value, 3);
+  const lovedGenres = favoriteGenreIds.value.size > 0 ? favoriteGenreIds.value : new Set(getTopGenreIds(filteredTracks.value, 3));
 
-  const byGenre = remaining.filter((track) =>
-    track.genres?.some((genre) => topGenreIds.includes(String(genre.id)))
-  );
-
-  const fallback = remaining.filter((track) => !byGenre.includes(track));
-
-  return [...byGenre.slice(0, 10), ...fallback.slice(0, 10)].slice(0, 10);
+  return remaining
+    .filter((track) =>
+      track.genres?.some((genre) => lovedGenres.has(String(genre.id)))
+    );
 });
 
 const filteredCount = computed(() => filteredTracks.value.length);
 
+const availableTracksCount = computed(() => {
+  if (props.stats?.tracks != null) {
+    return props.stats.tracks;
+  }
+  return props.tracks?.length ?? 0;
+});
+
+const artistCount = computed(() => {
+  if (props.stats?.artists != null) {
+    return props.stats.artists;
+  }
+  return 0;
+});
+
+const albumsCount = computed(() => {
+  if (props.stats?.albums != null) {
+    return props.stats.albums;
+  }
+  return 0;
+});
+
+const genresCount = computed(() => {
+  if (props.stats?.genres != null) {
+    return props.stats.genres;
+  }
+  return props.genres?.length ?? 0;
+});
+
+const page = usePage();
+const isLoggedIn = computed(() => Boolean(page.props.auth.user));
+
 const handlePlayTrack = (track, playlist = []) => {
+  if (!isLoggedIn.value) {
+    openAuthModal('Veuillez vous connecter pour lancer la musique.');
+    return;
+  }
+
   if (!track) return;
   playerStore.play(track, playlist);
 };
@@ -196,6 +254,37 @@ const formatDuration = (seconds) => {
     return `${min}:${sec.toString().padStart(2, '0')}`;
 };
 
+const getTrackUrl = (filePath) => {
+    if (!filePath || typeof filePath !== 'string') return '';
+    const normalized = filePath.trim();
+    if (!normalized) return '';
+    if (normalized.startsWith('http://') || normalized.startsWith('https://') || normalized.startsWith('/storage/')) {
+        return normalized;
+    }
+    if (normalized.startsWith('storage/')) {
+        return `/${normalized}`;
+    }
+    return `/storage/${normalized}`;
+};
+
+const getTrackCardProps = (track) => ({
+    id: track.id,
+    title: track.title,
+    artist: track.artist || track.album?.artist?.surname || track.album?.artist?.name || 'Artiste inconnu',
+    duration: formatDuration(track.duration),
+    album: track.album?.title || track.album?.name || '',
+    genre: track.genres?.[0]?.name ?? 'N/A',
+    comment: `/comment/${track.slug}`,
+    image: track.image ? getTrackUrl(track.image) : getTrackUrl(track.album?.image),
+    file_path: getTrackUrl(track.file_path),
+    favorites_count: track.favorites_count ?? 0,
+});
+
+const trackCard = (track) => ({
+    ...getTrackCardProps(track),
+    id: track.id,
+});
+
 // ========== SCROLL TOP ==========
 const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -250,20 +339,20 @@ const clearSearch = () => {
 
         <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
           <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-            <div class="text-2xl font-bold text-white">100M+</div>
+            <div class="text-2xl font-bold text-white">{{ availableTracksCount }}</div>
             <div class="text-xs text-gray-400">Titres disponibles</div>
           </div>
           <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-            <div class="text-2xl font-bold text-white">5M+</div>
-            <div class="text-xs text-gray-400">Podcasts exclusifs</div>
+            <div class="text-2xl font-bold text-white">{{ artistCount }}</div>
+            <div class="text-xs text-gray-400">Artistes existants</div>
           </div>
           <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-            <div class="text-2xl font-bold text-white">184</div>
-            <div class="text-xs text-gray-400">Pays couverts</div>
+            <div class="text-2xl font-bold text-white">{{ albumsCount }}</div>
+            <div class="text-xs text-gray-400">Albums disponibles</div>
           </div>
           <div class="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-            <div class="text-2xl font-bold text-white">99%</div>
-            <div class="text-xs text-gray-400">Satisfaction client</div>
+            <div class="text-2xl font-bold text-white">{{ genresCount }}</div>
+            <div class="text-xs text-gray-400">Genres explorés</div>
           </div>
         </div>
       </div>
@@ -326,15 +415,8 @@ const clearSearch = () => {
         <div v-else-if="nouveautes.length === 1" class="flex justify-center">
           <div class="w-full max-w-xs">
             <MusicCard
-              :id="nouveautes[0].id"
-              :favorites_count="nouveautes[0].favorites_count"
-              :title="nouveautes[0].title"
-              :artist="nouveautes[0].album.artist.surname"
-              :duration="formatDuration(nouveautes[0].duration)"
-              :album="nouveautes[0].album.title"
-              :genre="nouveautes[0].genres?.[0]?.name ?? 'N/A'"
-              :comment="`/comment/${nouveautes[0].slug}`"
-              :image="`/storage/${nouveautes[0].album.image}`"
+              v-bind="getTrackCardProps(nouveautes[0])"
+              @play-track="handlePlayTrack(nouveautes[0], nouveautes)"
               class="w-full"
             />
           </div>
@@ -345,15 +427,8 @@ const clearSearch = () => {
           <MusicCard
             v-for="track in nouveautes"
             :key="track.id"
-            :id="track.id"
-            :favorites_count="track.favorites_count"
-            :title="track.title"
-            :artist="track.album.artist.surname"
-            :duration="formatDuration(track.duration)"
-            :album="track.album.title"
-            :genre="track.genres?.[0]?.name ?? 'N/A'"
-            :comment="`/comment/${track.slug}`"
-            :image="`/storage/${track.album.image}`"
+            v-bind="getTrackCardProps(track)"
+            @play-track="handlePlayTrack(track, nouveautes)"
             class="w-full"
           />
         </div>
@@ -372,13 +447,8 @@ const clearSearch = () => {
                 class="swiper-slide-item"
               >
                 <MusicCard
-                  :title="track.title"
-                  :artist="track.album.artist.surname"
-                  :duration="formatDuration(track.duration)"
-                  :album="track.album.title"
-                  :genre="track.genres?.[0]?.name ?? 'N/A'"
-                  :comment="`/comment/${track.slug}`"
-                  :image="`/storage/${track.album.image}`"
+                  v-bind="getTrackCardProps(track)"
+                  @play-track="handlePlayTrack(track, nouveautes)"
                   class="music-card-item"
                 />
               </SwiperSlide>
@@ -406,15 +476,8 @@ const clearSearch = () => {
         <div v-else-if="populaires.length === 1" class="flex justify-center">
           <div class="w-full max-w-xs">
             <MusicCard
-              :id="populaires[0].id"
-              :favorites_count="populaires[0].favorites_count"
-              :title="populaires[0].title"
-              :artist="populaires[0].album.artist.surname"
-              :duration="formatDuration(populaires[0].duration)"
-              :album="populaires[0].album.title"
-              :genre="populaires[0].genres?.[0]?.name ?? 'N/A'"
-              :comment="`/comment/${populaires[0].slug}`"
-              :image="`/storage/${populaires[0].album.image}`"
+              v-bind="getTrackCardProps(populaires[0])"
+              @play-track="handlePlayTrack(populaires[0], populaires)"
               class="w-full"
             />
           </div>
@@ -423,15 +486,8 @@ const clearSearch = () => {
           <MusicCard
             v-for="track in populaires"
             :key="track.id"
-            :id="track.id"
-            :favorites_count="track.favorites_count"
-            :title="track.title"
-            :artist="track.album.artist.surname"
-            :duration="formatDuration(track.duration)"
-            :album="track.album.title"
-            :genre="track.genres?.[0]?.name ?? 'N/A'"
-            :comment="`/comment/${track.slug}`"
-            :image="`/storage/${track.album.image}`"
+            v-bind="getTrackCardProps(track)"
+            @play-track="handlePlayTrack(track, populaires)"
             class="w-full"
           />
         </div>
@@ -448,13 +504,8 @@ const clearSearch = () => {
                 class="swiper-slide-item"
               >
                 <MusicCard
-                  :title="track.title"
-                  :artist="track.album.artist.surname"
-                  :duration="formatDuration(track.duration)"
-                  :album="track.album.title"
-                  :genre="track.genres?.[0]?.name ?? 'N/A'"
-                  :comment="`/comment/${track.slug}`"
-                  :image="`/storage/${track.album.image}`"
+                  v-bind="getTrackCardProps(track)"
+                  @play-track="handlePlayTrack(track, populaires)"
                   class="music-card-item"
                 />
               </SwiperSlide>
@@ -480,15 +531,8 @@ const clearSearch = () => {
         <div v-else-if="suggestions.length === 1" class="flex justify-center">
           <div class="w-full max-w-xs">
             <MusicCard
-              :id="suggestions[0].id"
-              :favorites_count="suggestions[0].favorites_count"
-              :title="suggestions[0].title"
-              :artist="suggestions[0].album.artist.surname"
-              :duration="formatDuration(suggestions[0].duration)"
-              :album="suggestions[0].album.title"
-              :genre="suggestions[0].genres?.[0]?.name ?? 'N/A'"
-              :comment="`/comment/${suggestions[0].slug}`"
-              :image="`/storage/${suggestions[0].album.image}`"
+              v-bind="getTrackCardProps(suggestions[0])"
+              @play-track="handlePlayTrack(suggestions[0], suggestions)"
               class="w-full"
             />
           </div>
@@ -497,15 +541,8 @@ const clearSearch = () => {
           <MusicCard
             v-for="track in suggestions"
             :key="track.id"
-            :id="track.id"
-            :favorites_count="track.favorites_count"
-            :title="track.title"
-            :artist="track.album.artist.surname"
-            :duration="formatDuration(track.duration)"
-            :album="track.album.title"
-            :genre="track.genres?.[0]?.name ?? 'N/A'"
-            :comment="`/comment/${track.slug}`"
-            :image="`/storage/${track.album.image}`"
+            v-bind="getTrackCardProps(track)"
+            @play-track="handlePlayTrack(track, suggestions)"
             class="w-full"
           />
         </div>
@@ -522,13 +559,8 @@ const clearSearch = () => {
                 class="swiper-slide-item"
               >
                 <MusicCard
-                  :title="track.title"
-                  :artist="track.album.artist.surname"
-                  :duration="formatDuration(track.duration)"
-                  :album="track.album.title"
-                  :genre="track.genres?.[0]?.name ?? 'N/A'"
-                  :comment="`/comment/${track.slug}`"
-                  :image="`/storage/${track.album.image}`"
+                  v-bind="getTrackCardProps(track)"
+                  @play-track="handlePlayTrack(track, suggestions)"
                   class="music-card-item"
                 />
               </SwiperSlide>

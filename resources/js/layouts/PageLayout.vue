@@ -33,6 +33,7 @@ import MusicPlay from '@/components/angelo/cards/MusicPlay.vue';
 import BaseModal from '@/components/angelo/modals/BaseModal.vue';
 import FooterMusic from '@/components/angelo/footer/FooterMusic.vue';
 import { authModalStore } from '@/lib/authModalStore';
+import { playerStore } from '@/lib/playerStore';
 import { dashboard, login, register } from '@/routes'
 
 withDefaults(
@@ -55,6 +56,15 @@ const closeModal = (data) => {
     isOpenModal.value = data;
 }
 
+const page = usePage();
+
+const initializeFavorites = () => {
+    const favorites = page.props.favorites ?? [];
+    playerStore.setFavorites(favorites);
+};
+
+initializeFavorites();
+
 const sidebarOpen = ref(true)
 
 // 👉 Gestion du dropdown personnalisé
@@ -66,6 +76,10 @@ const toggleDropdown = () => {
 
 const closeDropdown = () => {
     isDropdownOpen.value = false;
+};
+
+const handleLogout = () => {
+    playerStore.stop();
 };
 
 // 👉 Fermer le dropdown en cliquant à l'extérieur
@@ -190,11 +204,7 @@ onMounted(() => {
         <button @click="sidebarOpen = !sidebarOpen" class="text-black cursor-pointer hover:text-dark flex justify-center items-center w-8 h-8 rounded-sm">
           <Sidebar class="w-7 h-7 text-white flex-shrink-0"/>
         </button>
-
         <div class="flex gap-5 items-center justify-end">
-            <label for="my_modal_7" class="">
-              <SearchInputMd />
-            </label>
             
             <Link href="/checkout" class="relative p-2 text-white hover:opacity-80 transition-all">
                 <ShoppingCart class="w-6 h-6" />
@@ -203,23 +213,9 @@ onMounted(() => {
                 </span>
             </Link>
 
-          <input type="checkbox" id="my_modal_7" class="modal-toggle" />
-          <div class="modal" role="dialog">
-            <div class="modal-box">
-              <div class="flex items-center bg-black/20 border border-[#33437e] backdrop-blur-xl rounded-full px-2 py-2">
-                <Search class="w-5 h-5 text-gray-400 flex-shrink-0" />
-                <input type="text" placeholder="Que souhaitez-vous écouter ?" class="bg-transparent outline-none text-white text-xs ml-3 w-full"/>
-              </div>
-              <PrimaryButton size="xs" class="w-[max-content] mt-2">Entrer</PrimaryButton>
-            </div>
-            <label class="modal-backdrop" for="my_modal_7">Close</label>
-          </div>
+        <div class="flex gap-5 items-center justify-end">
 
           <div v-if="$page.props.auth.user" class="flex gap-5 items-center">
-            <Link href="/explore-premium">
-              <PrimaryButton size="xs" class="w-[500px]">Explore premium</PrimaryButton>
-            </Link>
-
             <!-- 👉 DROPDOWN PERSONNALISÉ -->
             <div class="custom-dropdown">
               <button
@@ -247,23 +243,17 @@ onMounted(() => {
                     <p class="dropdown-user-name">{{ $page.props.auth.user.name }}</p>
                     <p class="dropdown-user-email">{{ $page.props.auth.user.email }}</p>
                   </div>
-
+                  
                   <Link
-                    href="/profile"
+                    href="/" 
                     class="dropdown-item"
                   >
                     <User class="dropdown-item-icon" />
                     Voir Profil
                   </Link>
-<<<<<<< HEAD
 
                   <Link
-                    href="/settings"
-=======
-                  
-                  <Link 
-                    href="/settings/profile" 
->>>>>>> 843a7c97820624139a30702030683a88835c2f76
+                    href="/settings/profile"
                     class="dropdown-item"
                   >
                     <Settings class="dropdown-item-icon" />
@@ -274,6 +264,8 @@ onMounted(() => {
                     href="/logout"
                     method="post"
                     as="button"
+
+                    @click="handleLogout"
                     class="dropdown-item dropdown-item-danger"
                   >
                     <LogOut class="dropdown-item-icon" />
