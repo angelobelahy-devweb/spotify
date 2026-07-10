@@ -4,7 +4,45 @@ import { Link } from '@inertiajs/vue3'
 import { CheckCircle, Sparkles, Crown, ArrowRight, ShieldCheck, Music } from 'lucide-vue-next'
 
 const props = defineProps({
-    plan: String
+    plan: String,
+    artist: Object,
+})
+
+const hasArtist = computed(() => Boolean(props.artist))
+
+const nextStep = computed(() => {
+    if (!hasArtist.value) {
+        return {
+            href: '/artistes/create',
+            label: 'Continuer et créer mon profil artiste',
+        }
+    }
+
+    if (props.artist.status === 'approved') {
+        return {
+            href: props.artist.slug ? `/artistes/${props.artist.slug}` : '/artistes',
+            label: 'Voir mon profil artiste',
+        }
+    }
+
+    if (props.artist.status === 'pending') {
+        return {
+            href: '/subscription/pending',
+            label: 'Voir ma demande artiste',
+        }
+    }
+
+    if (props.artist.status === 'rejected') {
+        return {
+            href: '/subscription/rejected',
+            label: 'Voir le statut de ma demande',
+        }
+    }
+
+    return {
+        href: '/artistes',
+        label: 'Accéder aux artistes',
+    }
 })
 
 const planDetails = computed(() => {
@@ -83,10 +121,10 @@ const planDetails = computed(() => {
 
             <div>
                 <Link
-                    href="/artistes/create"
+                    :href="nextStep.href"
                     class="flex items-center justify-center gap-2 w-full bg-[#33437e] hover:bg-[#364a92] active:scale-95 transition-all duration-300 px-6 py-4 rounded-full text-sm font-bold text-white shadow-lg shadow-[#33437e]/20"
                 >
-                    Continuer et créer mon profil artiste
+                    {{ nextStep.label }}
                     <ArrowRight class="w-4 h-4" />
                 </Link>
             </div>

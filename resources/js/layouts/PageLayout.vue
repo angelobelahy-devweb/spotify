@@ -33,6 +33,7 @@ import MusicPlay from '@/components/angelo/cards/MusicPlay.vue';
 import BaseModal from '@/components/angelo/modals/BaseModal.vue';
 import FooterMusic from '@/components/angelo/footer/FooterMusic.vue';
 import { authModalStore } from '@/lib/authModalStore';
+import { playerStore } from '@/lib/playerStore';
 import { dashboard, login, register } from '@/routes'
 
 withDefaults(
@@ -54,6 +55,15 @@ const closeModal = (data) => {
     isOpenModal.value = data;
 }
 
+const page = usePage();
+
+const initializeFavorites = () => {
+    const favorites = page.props.favorites ?? [];
+    playerStore.setFavorites(favorites);
+};
+
+initializeFavorites();
+
 const sidebarOpen = ref(true)
 
 // 👉 Gestion du dropdown personnalisé
@@ -65,6 +75,10 @@ const toggleDropdown = () => {
 
 const closeDropdown = () => {
     isDropdownOpen.value = false;
+};
+
+const handleLogout = () => {
+    playerStore.stop();
 };
 
 // 👉 Fermer le dropdown en cliquant à l'extérieur
@@ -88,7 +102,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="w-full flex max-h-screen bg-[#0d1329] overflow-y-hidden overflow-x-hidden">
     <Toast />
-    
+
     <!-- Sidebar -->
     <aside :class="sidebarOpen ? 'w-50' : 'w-15'" class="p-2 bg-[#0d1329] text-white transition-all duration-300 relative flex-shrink-0">
       <div class="flex justify-start items-center">
@@ -176,32 +190,13 @@ onBeforeUnmount(() => {
         <button @click="sidebarOpen = !sidebarOpen" class="text-black cursor-pointer hover:text-dark flex justify-center items-center w-8 h-8 rounded-sm">
           <Sidebar class="w-7 h-7 text-white flex-shrink-0"/>
         </button>
-        
-        <div class="flex gap-5 items-center justify-end">
-          <label for="my_modal_7" class="">
-            <SearchInputMd />
-          </label>
 
-          <input type="checkbox" id="my_modal_7" class="modal-toggle" />
-          <div class="modal" role="dialog">
-            <div class="modal-box">
-              <div class="flex items-center bg-black/20 border border-[#33437e] backdrop-blur-xl rounded-full px-2 py-2">
-                <Search class="w-5 h-5 text-gray-400 flex-shrink-0" />
-                <input type="text" placeholder="Que souhaitez-vous écouter ?" class="bg-transparent outline-none text-white text-xs ml-3 w-full"/>
-              </div>
-              <PrimaryButton size="xs" class="w-[max-content] mt-2">Entrer</PrimaryButton>
-            </div>
-            <label class="modal-backdrop" for="my_modal_7">Close</label>
-          </div>
+        <div class="flex gap-5 items-center justify-end">
 
           <div v-if="$page.props.auth.user" class="flex gap-5 items-center">
-            <Link href="/explore-premium">
-              <PrimaryButton size="xs" class="w-[500px]">Explore premium</PrimaryButton>
-            </Link>
-            
             <!-- 👉 DROPDOWN PERSONNALISÉ -->
             <div class="custom-dropdown">
-              <button 
+              <button
                 @click="toggleDropdown"
                 class="dropdown-trigger"
               >
@@ -212,13 +207,13 @@ onBeforeUnmount(() => {
               </button>
 
               <!-- Dropdown menu -->
-              <transition 
+              <transition
                 enter-active-class="dropdown-enter-active"
                 leave-active-class="dropdown-leave-active"
                 enter-from-class="dropdown-enter-from"
                 leave-to-class="dropdown-leave-to"
               >
-                <div 
+                <div
                   v-if="isDropdownOpen"
                   class="dropdown-menu"
                 >
@@ -227,26 +222,27 @@ onBeforeUnmount(() => {
                     <p class="dropdown-user-email">{{ $page.props.auth.user.email }}</p>
                   </div>
                   
-                  <Link 
-                    href="/profile" 
+                  <Link
+                    href="/" 
                     class="dropdown-item"
                   >
                     <User class="dropdown-item-icon" />
                     Voir Profil
                   </Link>
-                  
-                  <Link 
-                    href="/settings/profile" 
+
+                  <Link
+                    href="/settings/profile"
                     class="dropdown-item"
                   >
                     <Settings class="dropdown-item-icon" />
                     Paramètres
                   </Link>
-                  
-                  <Link 
-                    href="/logout" 
-                    method="post" 
-                    as="button" 
+
+                  <Link
+                    href="/logout"
+                    method="post"
+                    as="button"
+                    @click="handleLogout"
                     class="dropdown-item dropdown-item-danger"
                   >
                     <LogOut class="dropdown-item-icon" />
@@ -256,7 +252,7 @@ onBeforeUnmount(() => {
               </transition>
             </div>
           </div>
-          
+
           <div v-else class="flex gap-3 items-center">
             <Link :href="login()">
               <PrimaryButton>
@@ -290,7 +286,7 @@ onBeforeUnmount(() => {
       </main>
     </div>
   </div>
-  
+
   <BaseModal v-if="isOpenModal" @close-modal="closeModal">
     <MusicPlayeur/>
   </BaseModal>

@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])
+Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->controller(SubscriptionController::class) // 👈 Définit le contrôleur pour tout le groupe

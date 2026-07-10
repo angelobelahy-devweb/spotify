@@ -29,7 +29,9 @@ class TrackController extends Controller
 
     public function index()
     {
-        $tracks = Track::with(['album.artist.user', 'genres'])->get();
+        $tracks = Track::with(['album.artist.user', 'genres'])
+            ->withCount('favorites')
+            ->get();
         $genres = Genre::select('id', 'name')->get();
         return Inertia::render('music/tracks/TrackList', [
             'tracks' => $tracks,

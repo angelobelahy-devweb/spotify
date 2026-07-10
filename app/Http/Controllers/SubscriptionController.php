@@ -155,20 +155,18 @@ class SubscriptionController extends Controller
                 'updated_at'      => now(),
             ]);
 
-            Artist::updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'surname' => $user->name,
-                    'status'  => 'approved',
-                ]
-            );
-
             $user->pm_type = $plan;
             $user->save();
         }
 
+        $artist = $user->artist;
+
         return Inertia::render('subscription/Accepted', [
-            'plan' => $plan
+            'plan' => $plan,
+            'artist' => $artist ? [
+                'status' => $artist->status,
+                'slug' => $artist->user?->slug,
+            ] : null,
         ]);
     }
 

@@ -27,4 +27,3 @@ require __DIR__ . '/Admin/track.php';
 require __DIR__ . '/Admin/genre.php';
 require __DIR__ . '/Admin/subscription.php';
 require __DIR__ . '/Admin/comment.php';
-require __DIR__ . '/Admin/favorite.php';

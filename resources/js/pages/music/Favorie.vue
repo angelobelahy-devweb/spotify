@@ -1,13 +1,80 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { playerStore } from '@/lib/playerStore';
+import { openAuthModal } from '@/lib/authModalStore';
 
 const page = usePage();
 const favorites = computed(() => page.props.favorites ?? []);
+const favoriteTracks = ref(favorites.value);
+const isLoggedIn = computed(() => Boolean(page.props.auth.user));
+
+const getCsrfTokenFromCookie = () => {
+    const match = document.cookie.match(/(^|;)\s*XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[2]) : null;
+};
+
+const updateFavoriteList = (track, isFavorited) => {
+    const key = track?.id ?? track?.file_path ?? track?.title;
+    if (!key) return;
+
+    const index = favoriteTracks.value.findIndex((item) =>
+        (item?.id ?? item?.file_path ?? item?.title) === key
+    );
+
+    if (!isFavorited && index >= 0) {
+        favoriteTracks.value.splice(index, 1);
+    } else if (isFavorited && index === -1) {
+        favoriteTracks.value.push(track);
+    }
+};
 
 const playTrack = (track) => {
-    playerStore.play(track, favorites.value);
+    if (!isLoggedIn.value) {
+        openAuthModal('Veuillez vous connecter pour lancer la musique.');
+        return;
+    }
+
+    playerStore.play(track, favoriteTracks.value);
+};
+
+const toggleFavorite = async (track) => {
+    if (!isLoggedIn.value) {
+        openAuthModal('Veuillez vous connecter pour modifier vos favoris.');
+        return;
+    }
+
+    if (!track?.id) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/favorites/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': getCsrfTokenFromCookie() ?? '',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ track_id: track.id })
+        });
+
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 419 || response.redirected) {
+                openAuthModal('Veuillez vous connecter pour modifier vos favoris.');
+                return;
+            }
+            console.error('Toggle favorite failed', response.status, await response.text());
+            return;
+        }
+
+        const data = await response.json();
+        playerStore.toggleFavorite(data.track);
+        updateFavoriteList(data.track, data.favorite);
+    } catch (error) {
+        console.error(error);
+    }
 };
 </script>
 
@@ -52,6 +119,8 @@ const playTrack = (track) => {
                                 </p>
                             </div>
                             <button
+                                type="button"
+                                @click.stop="toggleFavorite(track)"
                                 class="
                                     hover:text-gray-400
                                     text-[#fae311]

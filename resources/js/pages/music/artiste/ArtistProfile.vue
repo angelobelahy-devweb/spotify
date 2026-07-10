@@ -1,12 +1,14 @@
 <script setup>
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import {
     Shield, Zap, Crown, ArrowLeft, Music, Disc, Radio,
     Heart, Eye, MessageCircle, Clock, Play, Pause,
     MoreHorizontal, Share2, Volume2, ListMusic,
     Star, Calendar, User, Headphones, Award, ShoppingCart, CheckCircle
 } from 'lucide-vue-next'
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import { playerStore } from '@/lib/playerStore'
+import { openAuthModal } from '@/lib/authModalStore'
 
 const props = defineProps({
     artist: Object,
@@ -15,10 +17,13 @@ const props = defineProps({
     stats: Object
 })
 
-// State for audio player
-const currentTrack = ref(null)
-const isPlaying = ref(false)
-const audioPlayer = ref(null) // Référence vers la balise HTML5 <audio>
+const page = usePage()
+const isLoggedIn = computed(() => Boolean(page.props.auth.user))
+const currentTrack = computed(() => playerStore.currentTrack)
+const isPlaying = computed(() => playerStore.isPlaying)
+const progress = computed(() => playerStore.progress || 0)
+const currentTime = computed(() => playerStore.currentTime || 0)
+const duration = computed(() => playerStore.duration || 0)
 
 // Computed properties
 const subscriptionBadge = computed(() => {
@@ -77,35 +82,30 @@ const formatNumber = (num) => {
 
 // Fonction de contrôle de lecture
 const togglePlayback = () => {
-    if (!audioPlayer.value) return
-
-    if (isPlaying.value) {
-        audioPlayer.value.pause()
-        isPlaying.value = false
-    } else {
-        audioPlayer.value.play().catch(err => console.log("Erreur de lecture :", err))
-        isPlaying.value = true
-    }
+    playerStore.toggle()
 }
 
 const playTrack = (track) => {
-    if (currentTrack.value?.id === track.id) {
-        togglePlayback()
-    } else {
-        currentTrack.value = track
-        isPlaying.value = true
+    if (!isLoggedIn.value) {
+        openAuthModal('Veuillez vous connecter pour lancer la musique.')
+        return
+    }
 
-        // Attendre que Vue mette à jour l'attribut src de l'audio avant de lancer la lecture
-        setTimeout(() => {
-            if (audioPlayer.value) {
-                audioPlayer.value.load()
-                audioPlayer.value.play().catch(err => console.log("Erreur de lecture :", err))
-            }
-        }, 50)
+    if (!track) return
+
+    if (currentTrack.value?.id === track.id) {
+        playerStore.toggle()
+    } else {
+        playerStore.play(track, props.tracks)
     }
 }
 
-// Récupère l'URL du fichier audio
+const updateProgress = (event) => {
+    if (!currentTrack.value || !duration.value) return
+    const value = Number(event.target.value)
+    playerStore.seek(value * duration.value)
+}
+
 const getTrackUrl = (track) => {
     if (!track || !track.file_path) return ''
     if (track.file_path.startsWith('http://') || track.file_path.startsWith('https://')) return track.file_path
@@ -311,7 +311,7 @@ const buyAlbum = (albumId) => {
                                     <ShoppingCart :size="13" />
                                     Acheter l'album
                                 </button>
-                                <Link v-else :href="`/albums/${album.id}`"
+                                <Link v-else :href="`/albums/detail/${album.slug || album.id}`"
                                       class="w-full mt-2 py-1.5 text-xs font-medium bg-[#33437e] hover:bg-[#4a5a9e] rounded transition-colors text-white flex items-center justify-center">
                                     Écouter l'album
                                 </Link>
@@ -333,8 +333,20 @@ const buyAlbum = (albumId) => {
                             Aucun commentaire pour le moment.
                         </div>
                         <div v-for="comment in allTracksComments.slice(0, 5)" :key="comment.id" class="flex gap-3">
-                            <img :src="comment.user?.pdp ? `/storage/${comment.user.pdp}` : '/images/default-avatar.png'"
-                                 class="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+
+                            <img
+                                v-if="comment.user?.pdp"
+                                :src="`/storage/${comment.user.pdp}`"
+                                :alt="comment.user.name"
+                                class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover flex-shrink-0"
+                            />
+
+                            <span
+                                v-else
+                                class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold"
+                            >
+                                {{ (comment.user?.name || 'U').charAt(0).toUpperCase() }}
+                            </span>
                             <div class="flex-1">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-2">
@@ -355,15 +367,6 @@ const buyAlbum = (albumId) => {
             </div>
         </div>
 
-        <audio
-            ref="audioPlayer"
-            v-if="currentTrack"
-            :src="getTrackUrl(currentTrack)"
-            @ended="isPlaying = false; currentTrack = null"
-            @play="isPlaying = true"
-            @pause="isPlaying = false"
-        ></audio>
-
         <div class="fixed bottom-0 left-0 right-0 bg-[#0d0d13]/95 backdrop-blur-md border-t border-[#2a2a3e] p-4 flex items-center justify-between z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
 
             <div class="flex items-center gap-3 min-w-[240px]">
@@ -381,9 +384,26 @@ const buyAlbum = (albumId) => {
                         {{ currentTrack ? currentTrack.title : 'Aucune piste' }}
                     </span>
                     <span class="text-xs text-gray-400 truncate">
-                        {{ artist.surname }}
+                        {{ currentTrack ? currentTrack.artist : artist.surname }}
                     </span>
                 </div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-center px-4">
+                <div class="flex items-center justify-between text-xs text-gray-400 mb-2">
+                    <span>{{ formatDuration(currentTime) }}</span>
+                    <span>{{ formatDuration(duration) }}</span>
+                </div>
+                <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.001"
+                    :value="progress"
+                    @input="updateProgress"
+                    :disabled="!currentTrack"
+                    class="w-full accent-white"
+                />
             </div>
 
             <div class="flex items-center gap-4">

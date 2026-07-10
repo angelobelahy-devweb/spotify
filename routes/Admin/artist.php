@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\ArtistController; // Ton contrôleur Admin
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth']) // Ajoute ton middleware admin ici si tu en as un (ex: 'admin')
+Route::middleware(['auth', 'admin']) // Ajoute ton middleware admin ici si tu en as un (ex: 'admin')
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {

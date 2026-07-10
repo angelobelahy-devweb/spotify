@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Inertia\Inertia;
+use App\Models\Album;
+use App\Models\Artist;
 use App\Models\Genre;
 use App\Models\Track;
 
@@ -21,9 +23,17 @@ class AccueilController extends Controller
 
         $genres = Genre::select('id', 'name')->get();
 
+        $stats = [
+            'tracks' => Track::count(),
+            'artists' => Artist::count(),
+            'albums' => Album::count(),
+            'genres' => Genre::count(),
+        ];
+
         return Inertia::render('Accueil', [
             'genres' => $genres,
             'tracks' => $tracks,
+            'stats' => $stats,
         ]);
     }
     public function comment(string $slug)

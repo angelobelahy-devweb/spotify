@@ -5,6 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
+import { playerStore } from '@/lib/playerStore';
+
+const handleLogout = () => {
+    playerStore.stop();
+};
 
 defineOptions({
     layout: {
@@ -40,7 +45,7 @@ defineProps<{
             Resend verification email
         </Button>
 
-        <TextLink :href="logout()" as="button" class="mx-auto block text-sm">
+        <TextLink :href="logout()" as="button" @click="handleLogout" class="mx-auto block text-sm">
             Log out
         </TextLink>
     </Form>

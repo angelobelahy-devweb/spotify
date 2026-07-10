@@ -1,9 +1,10 @@
 <script setup>
-import { Link } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
 import { defineProps, ref, computed, watch, nextTick } from 'vue'
 import { Music, Plus, ArrowLeft, ArrowRight } from 'lucide-vue-next';
 import MusicCard from '@/components/angelo/cards/MusicCard.vue';
 import { playerStore } from '@/lib/playerStore';
+import { openAuthModal } from '@/lib/authModalStore';
 
 // Import Swiper
 import { Swiper, SwiperSlide } from 'swiper/vue';
@@ -17,7 +18,15 @@ const props = defineProps({
   songs: Array
 });
 
+const page = usePage();
+const isLoggedIn = computed(() => Boolean(page.props.auth.user));
+
 const handlePlayTrack = (song) => {
+    if (!isLoggedIn.value) {
+        openAuthModal('Veuillez vous connecter pour lancer la musique.');
+        return;
+    }
+
     playerStore.play(song, props.songs);
 };
 
@@ -124,6 +133,32 @@ function formatDuration(seconds) {
   const secs = seconds % 60;
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
+
+const getTrackUrl = (filePath) => {
+  if (!filePath || typeof filePath !== 'string') return '';
+  const normalized = filePath.trim();
+  if (!normalized) return '';
+  if (normalized.startsWith('http://') || normalized.startsWith('https://') || normalized.startsWith('/storage/')) {
+    return normalized;
+  }
+  if (normalized.startsWith('storage/')) {
+    return `/${normalized}`;
+  }
+  return `/storage/${normalized}`;
+};
+
+const getTrackCardProps = (track) => ({
+  id: track.id,
+  title: track.title,
+  artist: track.artist || track.album?.artist?.surname || track.album?.artist?.name || 'Artiste inconnu',
+  duration: formatDuration(track.duration),
+  album: track.album?.title || track.album?.name || '',
+  genre: track.genres?.[0]?.name ?? 'N/A',
+  comment: `/comment/${track.slug}`,
+  image: track.image ? getTrackUrl(track.image) : getTrackUrl(track.album?.image),
+  file_path: getTrackUrl(track.file_path),
+  favorites_count: track.favorites_count ?? 0,
+});
 </script>
 
 <template>
@@ -190,14 +225,7 @@ function formatDuration(seconds) {
         <div v-else-if="filteredTracks.length === 1" class="flex justify-center">
           <div class="w-full max-w-xs">
             <MusicCard 
-              :title="filteredTracks[0].title"
-              :artist="filteredTracks[0].album.artist.surname"
-              :duration="formatDuration(filteredTracks[0].duration)"
-              :album="filteredTracks[0].album.title"
-              :genre="filteredTracks[0].genres?.[0]?.name ?? 'N/A'"
-              :comment="`/comment/${filteredTracks[0].slug}`"
-              :image="`/storage/${filteredTracks[0].album.image}`"
-              :file_path="filteredTracks[0].file_path"
+              v-bind="getTrackCardProps(filteredTracks[0])"
               @play-track="handlePlayTrack(filteredTracks[0])"
               class="w-full"
             />
@@ -209,14 +237,7 @@ function formatDuration(seconds) {
           <MusicCard 
             v-for="track in filteredTracks" 
             :key="track.id"
-            :title="track.title"
-            :artist="track.album.artist.surname"
-            :duration="formatDuration(track.duration)"
-            :album="track.album.title"
-            :genre="track.genres?.[0]?.name ?? 'N/A'"
-            :comment="`/comment/${track.slug}`"
-            :image="`/storage/${track.album.image}`"
-            :file_path="track.file_path"
+            v-bind="getTrackCardProps(track)"
             @play-track="handlePlayTrack(track)"
             class="w-full"
           />
@@ -236,14 +257,7 @@ function formatDuration(seconds) {
                 class="swiper-slide-item"
               >
                 <MusicCard 
-                  :title="track.title"
-                  :artist="track.album.artist.surname"
-                  :duration="formatDuration(track.duration)"
-                  :album="track.album.title"
-                  :genre="track.genres?.[0]?.name ?? 'N/A'"
-                  :comment="`/comment/${track.slug}`"
-                  :image="`/storage/${track.album.image}`"
-                  :file_path="track.file_path"
+                  v-bind="getTrackCardProps(track)"
                   @play-track="handlePlayTrack(track)"
                   class="music-card-item"
                 />

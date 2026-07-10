@@ -157,7 +157,7 @@ const submit = () => {
         :disabled="!canPublish || form.processing"
         class="w-full py-3 px-6 rounded-full font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2"
         :class="canPublish && !form.processing
-            ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer hover:-translate-y-0.5 shadow-lg'
+            ? 'bg-[#33437e] hover:bg-[#33437e]/90 text-white cursor-pointer hover:-translate-y-0.5 shadow-lg'
             : 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-60'"
     >
         <span v-if="form.processing">Création en cours...</span>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
 import { LogOut, Settings } from 'lucide-vue-next';
+import { playerStore } from '@/lib/playerStore';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -17,6 +18,7 @@ type Props = {
 };
 
 const handleLogout = () => {
+    playerStore.stop();
     router.flushAll();
 };
 
